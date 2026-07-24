@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0f1420">
+<title>Bulletproof 打卡</title>
+<style>
+:root{--bg:#0f1420;--card:#1a2232;--card2:#212b40;--line:#2e3a54;--txt:#e8ecf4;--dim:#8fa0bd;--acc:#4f8ef7;--good:#3ddc84;--warn:#ffb347;--bad:#ff6b6b;}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{background:var(--bg);color:var(--txt);font-family:-apple-system,"PingFang HK","Noto Sans TC",sans-serif;font-size:16px;padding-bottom:80px;}
+header{padding:16px 16px 8px;position:sticky;top:0;background:var(--bg);z-index:5;}
+h1{font-size:20px;} .sub{color:var(--dim);font-size:13px;margin-top:2px;}
+.tabs{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--line);z-index:10;padding-bottom:env(safe-area-inset-bottom);}
+.tabs button{flex:1;background:none;border:none;color:var(--dim);padding:12px 4px;font-size:13px;font-family:inherit;}
+.tabs button.on{color:var(--acc);font-weight:700;}
+.page{display:none;padding:0 14px;} .page.on{display:block;}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:12px 0;}
+.card h2{font-size:15px;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center;}
+.tag{font-size:11px;color:var(--dim);font-weight:400;}
+.goal{font-size:12px;color:var(--dim);margin-bottom:8px;}
+.item{display:flex;align-items:center;gap:10px;padding:9px 8px;border-radius:10px;}
+.item:active{background:var(--card2);}
+.item .box{width:24px;height:24px;min-width:24px;border-radius:7px;border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:15px;color:#0f1420;}
+.item.done .box{background:var(--good);border-color:var(--good);}
+.item.done .nm{color:var(--dim);text-decoration:line-through;}
+.item .nm{flex:1;font-size:15px;} .item .rx{font-size:12px;color:var(--dim);white-space:nowrap;}
+.prog{height:6px;background:var(--card2);border-radius:3px;margin:8px 0 2px;overflow:hidden;}
+.prog i{display:block;height:100%;background:var(--acc);border-radius:3px;transition:width .3s;}
+.row{display:flex;gap:10px;align-items:center;margin:10px 0;}
+.row label{flex:1;font-size:14px;}
+input[type=range]{flex:2;accent-color:var(--acc);}
+.val{width:34px;text-align:center;font-weight:700;font-size:17px;}
+.feel{display:flex;gap:8px;margin:8px 0;}
+.feel button{flex:1;font-size:22px;background:var(--card2);border:2px solid var(--line);border-radius:10px;padding:8px 0;}
+.feel button.on{border-color:var(--acc);background:#233250;}
+textarea{width:100%;background:var(--card2);border:1px solid var(--line);border-radius:10px;color:var(--txt);padding:10px;font-family:inherit;font-size:15px;min-height:64px;}
+.switch{display:flex;justify-content:space-between;align-items:center;padding:4px 2px;}
+.sw{width:50px;height:30px;border-radius:15px;background:var(--card2);border:1px solid var(--line);position:relative;transition:.2s;}
+.sw i{position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:var(--dim);transition:.2s;}
+.sw.on{background:var(--acc);} .sw.on i{left:23px;background:#fff;}
+.big{font-size:32px;font-weight:800;} .stat{text-align:center;flex:1;}
+.stat .lb{font-size:12px;color:var(--dim);margin-top:2px;}
+.grid30{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:8px;}
+.grid30 div{aspect-ratio:1;border-radius:6px;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--dim);}
+canvas{width:100%;height:160px;}
+.btn{display:block;width:100%;background:var(--acc);color:#fff;border:none;border-radius:12px;padding:13px;font-size:16px;font-weight:700;font-family:inherit;margin:10px 0;}
+.btn.ghost{background:var(--card2);color:var(--txt);border:1px solid var(--line);}
+select,input[type=number],input[type=text]{background:var(--card2);border:1px solid var(--line);border-radius:8px;color:var(--txt);padding:8px;font-size:15px;font-family:inherit;}
+.lvhead{display:flex;justify-content:space-between;align-items:center;}
+.pill{font-size:12px;padding:3px 10px;border-radius:99px;border:1px solid var(--line);color:var(--dim);}
+.pill.now{background:var(--acc);color:#fff;border-color:var(--acc);}
+.hist{font-size:13px;color:var(--dim);border-top:1px solid var(--line);padding:8px 2px;}
+.note{font-size:12px;color:var(--dim);margin-top:6px;line-height:1.5;}
+</style>
+</head>
+<body>
+<header><h1 id="hTitle">Bulletproof 打卡</h1><div class="sub" id="hDate"></div></header>
+
+<div class="page on" id="pg-today"></div>
+<div class="page" id="pg-prog"></div>
+<div class="page" id="pg-assess"></div>
+<div class="page" id="pg-level"></div>
+
+<div class="tabs">
+<button class="on" data-pg="today">✅ 今日</button>
+<button data-pg="prog">📈 進度</button>
+<button data-pg="assess">📋 評估</button>
+<button data-pg="level">🏆 等級</button>
+</div>
+
+<script>
+"use strict";
+/* ---------- 資料 ---------- */
+const DAILY = [
+ {id:"p1",name:"Phase 1 · Reset Mobility",tag:"2分鐘",goal:"胸椎打開，準備訓練",items:[
+  ["p1a","Foam Roller Thoracic Extension","×8"],["p1b","Open Book","左右各8"]]},
+ {id:"p2",name:"Phase 2 · Shoulder Stability",tag:"5分鐘",goal:"左肩唔夾擠 · Front Rack · Pull-up 用背",items:[
+  ["p2a","Face Pull","2×15"],["p2b","Band External Rotation","2×15"],["p2c","Serratus Wall Slide","2×10"]]},
+ {id:"p3",name:"Phase 3 · ECU Bulletproof",tag:"4分鐘",goal:"ECU 承受 Pull-up / Carry / Row",items:[
+  ["p3a","Forearm Rotation ROM","2×15"],["p3b","ECU Isometric","5×30秒"],["p3c","Finger Extension","2×20"]]},
+ {id:"p4",name:"Phase 4 · Lower Chain",tag:"4分鐘",goal:"小腿唔再代償",items:[
+  ["p4a","Single-leg Glute Bridge","2×12"],["p4b","Monster Walk","2×15步"],["p4c","Short Foot","3×30秒"]]}];
+const CORR = [
+ {id:"bA",name:"Block A · 肩胛",tag:"8分鐘",items:[
+  ["bA1","Scapular Pull-up（只郁肩胛，唔屈手）","3×8"],["bA2","Prone Y（停2秒）","2×10"],["bA3","Prone T","2×10"],["bA4","Bottom-up Carry（無KB改單手Overhead Carry）","3×20m"]]},
+ {id:"bB",name:"Block B · Rotator Cuff",tag:"6分鐘",items:[
+  ["bB1","Side Lying ER","3×12"],["bB2","Face Pull","2×20"],["bB3","Band W","2×15"]]},
+ {id:"bC",name:"Block C · Forearm",tag:"8分鐘",items:[
+  ["bC1","Wrist Extension Eccentric（2–4kg，3秒下降）","3×15"],["bC2","Pronation / Supination（Hammer）","3×12"],["bC3","Offset Carry（單手）","4×20–30秒"],["bC4","Rice Bucket（如果有）","1分鐘"]]},
+ {id:"bD",name:"Block D · 臀",tag:"8分鐘",items:[
+  ["bD1","Bulgarian Split Squat","3×8"],["bD2","Single-leg RDL","3×8"],["bD3","Copenhagen Plank","2×20秒"],["bD4","Tibialis Raise","2×20"]]},
+ {id:"bE",name:"終身動作",tag:"每週保留",items:[
+  ["bE1","Dead Hang Progression（ECU好返先開始 10–15秒×3）","每週2次"],["bE2","Turkish Get-up","每週1–2次"]]}];
+const WU = [["w1","Face Pull","15"],["w2","Band ER","15"],["w3","Serratus Punch","15"],["w4","ECU Isometric","3×20秒"],["w5","ROM","10"]];
+const LEVELS = [
+ {n:1,name:"Level 1 · 而家",items:["ROM","Isometric","Row","Ski","Sled Push"]},
+ {n:2,name:"Level 2",items:["Bench","Deadlift","Wall Ball","KB Swing"]},
+ {n:3,name:"Level 3",items:["Farmer Carry","Hang","Scap Pull-up","Band Pull-up"]},
+ {n:4,name:"Level 4",items:["Strict Pull-up","Chest-to-bar","Ring Dip","Muscle-up"]}];
+const FEELS = ["😫","😕","😐","🙂","💪"];
+
+/* ---------- 儲存 ---------- */
+const KEY = "bulletproof_v1";
+let DB = {days:{}, assessments:[], level:1, levelChecks:{}};
+try { const raw = localStorage.getItem(KEY); if (raw) DB = Object.assign(DB, JSON.parse(raw)); } catch(e){}
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(DB)); }catch(e){} }
+function dkey(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+const today = new Date(), TKEY = dkey(today);
+function day(k){ if(!DB.days[k]) DB.days[k] = {checks:{}, shoulder:null, ecu:null, feel:null, note:"", wod:false}; return DB.days[k]; }
+const D = day(TKEY);
+const isCorrDay = [2,6].includes(today.getDay()); // 星期二 / 星期六
+
+/* ---------- 工具 ---------- */
+function el(html){ const t=document.createElement("template"); t.innerHTML=html.trim(); return t.content.firstChild; }
+function totalItems(){ let n = DAILY.reduce((s,b)=>s+b.items.length,0); if(isCorrDay) n += CORR.reduce((s,b)=>s+b.items.length,0); if(D.wod) n += WU.length; return n; }
+function doneItems(){ return Object.values(D.checks).filter(Boolean).length; }
+
+/* ---------- 今日頁 ---------- */
+function block(b, prefix){
+ const card = el(`<div class="card"><h2>${b.name}<span class="tag">${b.tag}</span></h2>${b.goal?`<div class="goal">🎯 ${b.goal}</div>`:""}</div>`);
+ b.items.forEach(([id,nm,rx])=>{
+  const it = el(`<div class="item"><div class="box">✓</div><div class="nm">${nm}</div><div class="rx">${rx}</div></div>`);
+  const k = prefix+id;
+  if(D.checks[k]) it.classList.add("done");
+  it.onclick = ()=>{ D.checks[k]=!D.checks[k]; it.classList.toggle("done"); save(); renderHead(); };
+  card.appendChild(it);
+ });
+ return card;
+}
+function renderHead(){
+ const t = totalItems(), d = doneItems();
+ document.getElementById("hDate").textContent =
+  TKEY + "（" + "日一二三四五六"[today.getDay()] + "）· 完成 " + d + "/" + t + (isCorrDay ? " · 今日係 Corrective 日 💪" : "");
+}
+function renderToday(){
+ const pg = document.getElementById("pg-today"); pg.innerHTML = "";
+ const t = totalItems(), d = doneItems();
+ const top = el(`<div class="card"><div class="row" style="margin:0"><div class="stat"><div class="big" id="pct"></div><div class="lb">今日完成率</div></div><div class="stat"><div class="big">${streak()}</div><div class="lb">連續日數 🔥</div></div></div><div class="prog"><i id="pbar"></i></div></div>`);
+ pg.appendChild(top);
+ pg.appendChild(el(`<div class="sub" style="padding:4px 2px">每日 Reset（15分鐘 · 365日）</div>`));
+ DAILY.forEach(b=>pg.appendChild(block(b,"")));
+ if(isCorrDay){
+  pg.appendChild(el(`<div class="sub" style="padding:4px 2px">Athlete Corrective（30分鐘 · 週二/週六）</div>`));
+  CORR.forEach(b=>pg.appendChild(block(b,"")));
+ }
+ // CrossFit warm-up toggle
+ const wc = el(`<div class="card"><div class="switch"><span>今日有 CrossFit 課？</span><div class="sw${D.wod?" on":""}" id="swWod"><i></i></div></div><div id="wuList"></div></div>`);
+ pg.appendChild(wc);
+ const wuList = wc.querySelector("#wuList");
+ function renderWU(){
+  wuList.innerHTML = "";
+  if(!D.wod) return;
+  wuList.appendChild(el(`<div class="goal" style="margin-top:8px">課前 Warm-up（5分鐘）一定要做：</div>`));
+  WU.forEach(([id,nm,rx])=>{
+   const it = el(`<div class="item"><div class="box">✓</div><div class="nm">${nm}</div><div class="rx">${rx}</div></div>`);
+   if(D.checks[id]) it.classList.add("done");
+   it.onclick = ()=>{ D.checks[id]=!D.checks[id]; it.classList.toggle("done"); save(); renderHead(); updateBar(); };
+   wuList.appendChild(it);
+  });
+ }
+ wc.querySelector("#swWod").onclick = function(){ D.wod=!D.wod; this.classList.toggle("on"); save(); renderWU(); renderHead(); updateBar(); };
+ renderWU();
+ // 痛感 + 感受
+ const fb = el(`<div class="card"><h2>今日狀態</h2>
+  <div class="row"><label>左肩痛 (0–10)</label><input type="range" min="0" max="10" id="rSh" value="${D.shoulder??0}"><div class="val" id="vSh">${D.shoulder??"–"}</div></div>
+  <div class="row"><label>ECU 痛 (0–10)</label><input type="range" min="0" max="10" id="rEc" value="${D.ecu??0}"><div class="val" id="vEc">${D.ecu??"–"}</div></div>
+  <div class="goal" style="margin-top:6px">訓練感受</div><div class="feel" id="feels"></div>
+  <textarea id="note" placeholder="備註：邊個動作有感覺？邊度攰？">${D.note||""}</textarea></div>`);
+ pg.appendChild(fb);
+ fb.querySelector("#rSh").oninput = function(){ D.shoulder=+this.value; fb.querySelector("#vSh").textContent=this.value; save(); };
+ fb.querySelector("#rEc").oninput = function(){ D.ecu=+this.value; fb.querySelector("#vEc").textContent=this.value; save(); };
+ const feels = fb.querySelector("#feels");
+ FEELS.forEach((f,i)=>{
+  const b = el(`<button>${f}</button>`);
+  if(D.feel===i+1) b.classList.add("on");
+  b.onclick = ()=>{ D.feel=i+1; feels.querySelectorAll("button").forEach(x=>x.classList.remove("on")); b.classList.add("on"); save(); };
+  feels.appendChild(b);
+ });
+ fb.querySelector("#note").oninput = function(){ D.note=this.value; save(); };
+ updateBar();
+}
+function updateBar(){
+ const t = totalItems(), d = doneItems(), pct = t? Math.round(d/t*100):0;
+ const p = document.getElementById("pct"), bar = document.getElementById("pbar");
+ if(p) p.textContent = pct + "%";
+ if(bar) bar.style.width = pct + "%";
+}
+function dayPct(k){
+ const dd = DB.days[k]; if(!dd) return 0;
+ const dt = new Date(k+"T12:00:00");
+ let n = DAILY.reduce((s,b)=>s+b.items.length,0);
+ if([2,6].includes(dt.getDay())) n += CORR.reduce((s,b)=>s+b.items.length,0);
+ if(dd.wod) n += WU.length;
+ const done = Object.values(dd.checks||{}).filter(Boolean).length;
+ return n? done/n : 0;
+}
+function streak(){
+ let s=0, d=new Date(today);
+ if(dayPct(TKEY) >= 0.8) s++;
+ d.setDate(d.getDate()-1);
+ while(dayPct(dkey(d)) >= 0.8){ s++; d.setDate(d.getDate()-1); }
+ return s;
+}
+
+/* ---------- 進度頁 ---------- */
+function renderProg(){
+ const pg = document.getElementById("pg-prog"); pg.innerHTML = "";
+ const keys = Object.keys(DB.days).sort();
+ const done7 = last(7).filter(k=>dayPct(k)>=0.8).length;
+ pg.appendChild(el(`<div class="card"><div class="row" style="margin:0">
+  <div class="stat"><div class="big">${streak()}</div><div class="lb">連續日數 🔥</div></div>
+  <div class="stat"><div class="big">${done7}/7</div><div class="lb">過去7日達標</div></div>
+  <div class="stat"><div class="big">${keys.length}</div><div class="lb">總打卡日數</div></div></div></div>`));
+ // 28日格仔
+ const gcard = el(`<div class="card"><h2>過去4星期<span class="tag">綠=完成80%+</span></h2><div class="grid30" id="g28"></div></div>`);
+ pg.appendChild(gcard);
+ const g = gcard.querySelector("#g28");
+ last(28).forEach(k=>{
+  const p = dayPct(k), c = el(`<div>${+k.slice(8)}</div>`);
+  if(p>=0.8){ c.style.background="var(--good)"; c.style.color="#0f1420"; c.style.fontWeight="700"; }
+  else if(p>0){ c.style.background="#3a4a2e"; }
+  g.appendChild(c);
+ });
+ // 痛感趨勢
+ const ccard = el(`<div class="card"><h2>痛感趨勢（30日）</h2><canvas id="chart" width="640" height="320"></canvas><div class="note">🔵 左肩　🔴 ECU　—— 趨勢向下 = 進步緊</div></div>`);
+ pg.appendChild(ccard);
+ drawChart(ccard.querySelector("#chart"));
+ // 匯出/入
+ const io = el(`<div class="card"><h2>備份</h2><button class="btn ghost" id="bExp">📤 匯出資料（複製JSON）</button><button class="btn ghost" id="bImp">📥 匯入資料</button><div class="note">換電話或者清咗瀏覽器資料之前，記得匯出備份。</div></div>`);
+ pg.appendChild(io);
+ io.querySelector("#bExp").onclick = ()=>{
+  const s = JSON.stringify(DB);
+  if(navigator.clipboard) navigator.clipboard.writeText(s).then(()=>alert("已複製到剪貼簿 ✅"),()=>prompt("手動複製：",s));
+  else prompt("手動複製：",s);
+ };
+ io.querySelector("#bImp").onclick = ()=>{
+  const s = prompt("貼上之前匯出嘅 JSON：");
+  if(!s) return;
+  try{ DB = Object.assign({days:{},assessments:[],level:1,levelChecks:{}}, JSON.parse(s)); save(); location.reload(); }
+  catch(e){ alert("格式唔啱，匯入失敗"); }
+ };
+}
+function last(n){
+ const arr=[], d=new Date(today); d.setDate(d.getDate()-(n-1));
+ for(let i=0;i<n;i++){ arr.push(dkey(d)); d.setDate(d.getDate()+1); }
+ return arr;
+}
+function drawChart(cv){
+ const ctx = cv.getContext && cv.getContext("2d"); if(!ctx) return;
+ const W=cv.width, H=cv.height, pad=30;
+ ctx.clearRect(0,0,W,H);
+ ctx.strokeStyle="#2e3a54"; ctx.lineWidth=1; ctx.font="20px sans-serif"; ctx.fillStyle="#8fa0bd";
+ for(let v=0;v<=10;v+=5){
+  const y = H-pad-(H-2*pad)*v/10;
+  ctx.beginPath(); ctx.moveTo(pad,y); ctx.lineTo(W-8,y); ctx.stroke();
+  ctx.fillText(v, 4, y+6);
+ }
+ const ks = last(30);
+ function line(field,color){
+  ctx.strokeStyle=color; ctx.lineWidth=3; ctx.beginPath(); let started=false;
+  ks.forEach((k,i)=>{
+   const dd=DB.days[k]; if(!dd||dd[field]==null) return;
+   const x = pad+(W-pad-12)*i/29, y = H-pad-(H-2*pad)*dd[field]/10;
+   if(!started){ ctx.moveTo(x,y); started=true; } else ctx.lineTo(x,y);
+  });
+  ctx.stroke();
+  ks.forEach((k,i)=>{
+   const dd=DB.days[k]; if(!dd||dd[field]==null) return;
+   const x = pad+(W-pad-12)*i/29, y = H-pad-(H-2*pad)*dd[field]/10;
+   ctx.fillStyle=color; ctx.beginPath(); ctx.arc(x,y,5,0,7); ctx.fill();
+  });
+ }
+ line("shoulder","#4f8ef7"); line("ecu","#ff6b6b");
+}
+
+/* ---------- 評估頁 ---------- */
+const ASSESS_FIELDS = [
+ ["肩","shFlex","左右 Shoulder Flexion 對稱？","yn"],
+ ["肩","frontRack","Front Rack 容易？","yn"],
+ ["肩","shPain","左肩痛（0–10）","num"],
+ ["腕","ecuTest","ECU Test（0–10）","num"],
+ ["腕","deadHang","Dead Hang 30秒？","yn"],
+ ["腕","farmer","Farmer Carry 20kg 30秒？","yn"],
+ ["下肢","slsDiff","Single-leg Squat 左右差距","text"],
+ ["下肢","fatigue","邊度先攰？","choice"]];
+function renderAssess(){
+ const pg = document.getElementById("pg-assess"); pg.innerHTML = "";
+ pg.appendChild(el(`<div class="sub" style="padding:4px 2px">每月做一次（10分鐘），記低數據睇進步</div>`));
+ const card = el(`<div class="card"><h2>新評估 · ${TKEY}</h2></div>`);
+ const vals = {};
+ ASSESS_FIELDS.forEach(([grp,id,label,type])=>{
+  let ctrl;
+  if(type==="yn"){
+   ctrl = el(`<div class="row"><label>【${grp}】${label}</label><select><option value="">–</option><option value="✅">係</option><option value="❌">未得</option></select></div>`);
+   ctrl.querySelector("select").onchange = function(){ vals[id]=this.value; };
+  } else if(type==="num"){
+   ctrl = el(`<div class="row"><label>【${grp}】${label}</label><input type="number" min="0" max="10" style="width:70px"></div>`);
+   ctrl.querySelector("input").oninput = function(){ vals[id]=this.value; };
+  } else if(type==="choice"){
+   ctrl = el(`<div class="row"><label>【${grp}】${label}</label><select><option value="">–</option><option>小腿先攰</option><option>臀先攰</option><option>差唔多</option></select></div>`);
+   ctrl.querySelector("select").onchange = function(){ vals[id]=this.value; };
+  } else {
+   ctrl = el(`<div class="row"><label>【${grp}】${label}</label><input type="text" style="width:120px" placeholder="例：左弱少少"></div>`);
+   ctrl.querySelector("input").oninput = function(){ vals[id]=this.value; };
+  }
+  card.appendChild(ctrl);
+ });
+ const sv = el(`<button class="btn">💾 儲存今次評估</button>`);
+ sv.onclick = ()=>{ DB.assessments.push({date:TKEY, ...vals}); save(); renderAssess(); alert("已儲存 ✅"); };
+ card.appendChild(sv);
+ pg.appendChild(card);
+ // 歷史
+ if(DB.assessments.length){
+  const h = el(`<div class="card"><h2>歷史記錄</h2></div>`);
+  [...DB.assessments].reverse().forEach(a=>{
+   h.appendChild(el(`<div class="hist"><b>${a.date}</b> ｜ 左肩痛 ${a.shPain??"–"} · ECU ${a.ecuTest??"–"} · Dead Hang ${a.deadHang||"–"} · Farmer ${a.farmer||"–"} · Flexion對稱 ${a.shFlex||"–"} · Front Rack ${a.frontRack||"–"} · ${a.fatigue||""} ${a.slsDiff||""}</div>`));
+  });
+  pg.appendChild(h);
+ }
+}
+
+/* ---------- 等級頁 ---------- */
+function renderLevel(){
+ const pg = document.getElementById("pg-level"); pg.innerHTML = "";
+ pg.appendChild(el(`<div class="sub" style="padding:4px 2px">動作「無痛完成」就剔佢，全組完成先升 Level</div>`));
+ LEVELS.forEach(lv=>{
+  const done = lv.items.filter(x=>DB.levelChecks[lv.n+"_"+x]).length;
+  const card = el(`<div class="card"><div class="lvhead"><h2 style="margin:0">${lv.name}</h2><span class="pill${DB.level===lv.n?" now":""}">${DB.level===lv.n?"而家喺度":done+"/"+lv.items.length}</span></div><div class="prog"><i style="width:${Math.round(done/lv.items.length*100)}%"></i></div></div>`);
+  lv.items.forEach(x=>{
+   const k = lv.n+"_"+x;
+   const it = el(`<div class="item"><div class="box">✓</div><div class="nm">${x}</div></div>`);
+   if(DB.levelChecks[k]) it.classList.add("done");
+   it.onclick = ()=>{
+    DB.levelChecks[k]=!DB.levelChecks[k]; it.classList.toggle("done");
+    const dn = lv.items.filter(y=>DB.levelChecks[lv.n+"_"+y]).length;
+    if(dn===lv.items.length && DB.level===lv.n && lv.n<4){ DB.level=lv.n+1; alert("🎉 恭喜！升上 Level "+(lv.n+1)+"！"); renderLevel(); }
+    save(); if(document.getElementById("pg-level").classList.contains("on") && dn!==lv.items.length) renderLevel();
+   };
+   card.appendChild(it);
+  });
+  pg.appendChild(card);
+ });
+ pg.appendChild(el(`<div class="card"><h2>Bulletproof Priority</h2>
+  <div class="hist">🥇 肩胛控制 — 左肩痛 · Pull-up · Front Rack · 減手腕代償</div>
+  <div class="hist">🥈 前臂耐受力 — 降 ECU overload · 恢復抓握懸吊</div>
+  <div class="hist">🥉 胸椎活動 — Overhead · Wall Ball · Thruster</div>
+  <div class="hist">4️⃣ 臀肌控制 — 減小腿代償 · 跑跳效率</div>
+  <div class="hist">5️⃣ 足部穩定 — 落地與力線</div>
+  <div class="note">堅持 8–12 星期，目標唔係淨係醫好今次 ECU，而係可以穩定加訓練量，唔使隔幾個月又因 overload 停練。</div></div>`));
+}
+
+/* ---------- Tabs ---------- */
+document.querySelectorAll(".tabs button").forEach(b=>{
+ b.onclick = ()=>{
+  document.querySelectorAll(".tabs button").forEach(x=>x.classList.remove("on"));
+  document.querySelectorAll(".page").forEach(x=>x.classList.remove("on"));
+  b.classList.add("on");
+  document.getElementById("pg-"+b.dataset.pg).classList.add("on");
+  if(b.dataset.pg==="prog") renderProg();
+  if(b.dataset.pg==="assess") renderAssess();
+  if(b.dataset.pg==="level") renderLevel();
+  if(b.dataset.pg==="today") renderToday();
+ };
+});
+renderHead(); renderToday();
+</script>
+</body>
+</html>
