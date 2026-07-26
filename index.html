@@ -11,22 +11,29 @@
 :root{--bg:#0f1420;--card:#1a2232;--card2:#212b40;--line:#2e3a54;--txt:#e8ecf4;--dim:#8fa0bd;--acc:#4f8ef7;--good:#3ddc84;--warn:#ffb347;--bad:#ff6b6b;}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{background:var(--bg);color:var(--txt);font-family:-apple-system,"PingFang HK","Noto Sans TC",sans-serif;font-size:16px;padding-bottom:80px;}
-header{padding:16px 16px 8px;position:sticky;top:0;background:var(--bg);z-index:5;}
+header{padding:16px 16px 8px;position:sticky;top:0;background:var(--bg);z-index:5;display:flex;justify-content:space-between;align-items:flex-start;}
 h1{font-size:20px;} .sub{color:var(--dim);font-size:13px;margin-top:2px;}
+#btnEdit{background:var(--card2);border:1px solid var(--line);color:var(--txt);border-radius:99px;padding:7px 14px;font-size:13px;font-family:inherit;}
+#btnEdit.on{background:var(--warn);color:#0f1420;font-weight:700;border-color:var(--warn);}
 .tabs{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--line);z-index:10;padding-bottom:env(safe-area-inset-bottom);}
 .tabs button{flex:1;background:none;border:none;color:var(--dim);padding:12px 4px;font-size:13px;font-family:inherit;}
 .tabs button.on{color:var(--acc);font-weight:700;}
 .page{display:none;padding:0 14px;} .page.on{display:block;}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:12px 0;}
-.card h2{font-size:15px;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center;}
+.card h2{font-size:15px;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center;gap:6px;}
 .tag{font-size:11px;color:var(--dim);font-weight:400;}
 .goal{font-size:12px;color:var(--dim);margin-bottom:8px;}
 .item{display:flex;align-items:center;gap:10px;padding:9px 8px;border-radius:10px;}
 .item:active{background:var(--card2);}
-.item .box{width:24px;height:24px;min-width:24px;border-radius:7px;border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:15px;color:#0f1420;}
+.item .box{width:26px;height:26px;min-width:26px;border-radius:7px;border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:15px;color:#0f1420;}
 .item.done .box{background:var(--good);border-color:var(--good);}
 .item.done .nm{color:var(--dim);text-decoration:line-through;}
-.item .nm{flex:1;font-size:15px;} .item .rx{font-size:12px;color:var(--dim);white-space:nowrap;}
+.item .mid{flex:1;min-width:0;}
+.item .nm{font-size:15px;} .item .rx{font-size:12px;color:var(--dim);}
+.item .chev{color:var(--dim);font-size:16px;}
+.item .hasinfo{font-size:11px;color:var(--acc);}
+.ebtn{background:var(--card2);border:1px solid var(--line);border-radius:8px;color:var(--txt);font-size:14px;padding:5px 9px;font-family:inherit;}
+.addbtn{display:block;width:100%;background:none;border:1px dashed var(--line);border-radius:10px;color:var(--dim);padding:10px;font-size:14px;font-family:inherit;margin-top:6px;}
 .prog{height:6px;background:var(--card2);border-radius:3px;margin:8px 0 2px;overflow:hidden;}
 .prog i{display:block;height:100%;background:var(--acc);border-radius:3px;transition:width .3s;}
 .row{display:flex;gap:10px;align-items:center;margin:10px 0;}
@@ -54,10 +61,27 @@ select,input[type=number],input[type=text]{background:var(--card2);border:1px so
 .pill.now{background:var(--acc);color:#fff;border-color:var(--acc);}
 .hist{font-size:13px;color:var(--dim);border-top:1px solid var(--line);padding:8px 2px;}
 .note{font-size:12px;color:var(--dim);margin-top:6px;line-height:1.5;}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;}
+.chips button{background:var(--card2);border:1px solid var(--line);border-radius:99px;color:var(--dim);padding:6px 12px;font-size:14px;font-family:inherit;}
+.chips button.on{background:var(--acc);color:#fff;border-color:var(--acc);}
+#toast{position:fixed;bottom:76px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--good);color:#0f1420;font-weight:700;font-size:14px;padding:8px 18px;border-radius:99px;opacity:0;transition:.25s;pointer-events:none;z-index:50;}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+#ovl{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:20;display:none;}
+#ovl.on{display:block;}
+#sheet{position:fixed;left:0;right:0;bottom:0;max-height:88vh;overflow-y:auto;background:var(--card);border-radius:20px 20px 0 0;border-top:1px solid var(--line);z-index:21;padding:16px 16px calc(24px + env(safe-area-inset-bottom));transform:translateY(105%);transition:.28s;}
+#sheet.on{transform:translateY(0);}
+#sheet h3{font-size:18px;display:flex;justify-content:space-between;align-items:center;}
+#mClose{background:var(--card2);border:1px solid var(--line);color:var(--txt);border-radius:99px;width:32px;height:32px;font-size:16px;}
+.imgs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px;}
+.imgs img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;border:1px solid var(--line);}
+.addimg{aspect-ratio:1;border:1px dashed var(--line);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--dim);font-size:13px;gap:4px;}
 </style>
 </head>
 <body>
-<header><h1 id="hTitle">Bulletproof 打卡</h1><div class="sub" id="hDate"></div></header>
+<header>
+<div><h1>Bulletproof 打卡</h1><div class="sub" id="hDate"></div></div>
+<button id="btnEdit">✏️ 編輯計劃</button>
+</header>
 
 <div class="page on" id="pg-today"></div>
 <div class="page" id="pg-prog"></div>
@@ -71,107 +95,263 @@ select,input[type=number],input[type=text]{background:var(--card2);border:1px so
 <button data-pg="level">🏆 等級</button>
 </div>
 
+<div id="toast">✅ 已儲存</div>
+<div id="ovl"></div>
+<div id="sheet">
+<h3><span id="mTitle"></span><button id="mClose">✕</button></h3>
+<div class="sub" id="mRx"></div>
+<div class="goal" style="margin-top:12px">📝 動作說明 / 貼士（自動儲存）</div>
+<textarea id="mDesc" placeholder="例：手肘貼身，拉到面前，收尾夾背2秒…"></textarea>
+<div class="goal" style="margin-top:12px">📷 示範相片（撳相可刪除）</div>
+<div class="imgs" id="mImgs"></div>
+<div class="note">相片存喺電話入面（唔包括喺JSON備份）。</div>
+</div>
+
 <script>
 "use strict";
-/* ---------- 資料 ---------- */
-const DAILY = [
- {id:"p1",name:"Phase 1 · Reset Mobility",tag:"2分鐘",goal:"胸椎打開，準備訓練",items:[
-  ["p1a","Foam Roller Thoracic Extension","×8"],["p1b","Open Book","左右各8"]]},
- {id:"p2",name:"Phase 2 · Shoulder Stability",tag:"5分鐘",goal:"左肩唔夾擠 · Front Rack · Pull-up 用背",items:[
-  ["p2a","Face Pull","2×15"],["p2b","Band External Rotation","2×15"],["p2c","Serratus Wall Slide","2×10"]]},
- {id:"p3",name:"Phase 3 · ECU Bulletproof",tag:"4分鐘",goal:"ECU 承受 Pull-up / Carry / Row",items:[
-  ["p3a","Forearm Rotation ROM","2×15"],["p3b","ECU Isometric","5×30秒"],["p3c","Finger Extension","2×20"]]},
- {id:"p4",name:"Phase 4 · Lower Chain",tag:"4分鐘",goal:"小腿唔再代償",items:[
-  ["p4a","Single-leg Glute Bridge","2×12"],["p4b","Monster Walk","2×15步"],["p4c","Short Foot","3×30秒"]]}];
-const CORR = [
- {id:"bA",name:"Block A · 肩胛",tag:"8分鐘",items:[
-  ["bA1","Scapular Pull-up（只郁肩胛，唔屈手）","3×8"],["bA2","Prone Y（停2秒）","2×10"],["bA3","Prone T","2×10"],["bA4","Bottom-up Carry（無KB改單手Overhead Carry）","3×20m"]]},
- {id:"bB",name:"Block B · Rotator Cuff",tag:"6分鐘",items:[
-  ["bB1","Side Lying ER","3×12"],["bB2","Face Pull","2×20"],["bB3","Band W","2×15"]]},
- {id:"bC",name:"Block C · Forearm",tag:"8分鐘",items:[
-  ["bC1","Wrist Extension Eccentric（2–4kg，3秒下降）","3×15"],["bC2","Pronation / Supination（Hammer）","3×12"],["bC3","Offset Carry（單手）","4×20–30秒"],["bC4","Rice Bucket（如果有）","1分鐘"]]},
- {id:"bD",name:"Block D · 臀",tag:"8分鐘",items:[
-  ["bD1","Bulgarian Split Squat","3×8"],["bD2","Single-leg RDL","3×8"],["bD3","Copenhagen Plank","2×20秒"],["bD4","Tibialis Raise","2×20"]]},
- {id:"bE",name:"終身動作",tag:"每週保留",items:[
-  ["bE1","Dead Hang Progression（ECU好返先開始 10–15秒×3）","每週2次"],["bE2","Turkish Get-up","每週1–2次"]]}];
-const WU = [["w1","Face Pull","15"],["w2","Band ER","15"],["w3","Serratus Punch","15"],["w4","ECU Isometric","3×20秒"],["w5","ROM","10"]];
+/* ---------- 預設計劃（第一次用先會載入，之後全部可自己改） ---------- */
+function defaultPlan(){ return {
+ corrDays:[2,6],
+ daily:[
+  {id:"p1",name:"Phase 1 · Reset Mobility",tag:"2分鐘",goal:"胸椎打開，準備訓練",items:[
+   {id:"p1a",name:"Foam Roller Thoracic Extension",rx:"×8"},{id:"p1b",name:"Open Book",rx:"左右各8"}]},
+  {id:"p2",name:"Phase 2 · Shoulder Stability",tag:"5分鐘",goal:"左肩唔夾擠 · Front Rack · Pull-up 用背",items:[
+   {id:"p2a",name:"Face Pull",rx:"2×15"},{id:"p2b",name:"Band External Rotation",rx:"2×15"},{id:"p2c",name:"Serratus Wall Slide",rx:"2×10"}]},
+  {id:"p3",name:"Phase 3 · ECU Bulletproof",tag:"4分鐘",goal:"ECU 承受 Pull-up / Carry / Row",items:[
+   {id:"p3a",name:"Forearm Rotation ROM",rx:"2×15"},{id:"p3b",name:"ECU Isometric",rx:"5×30秒"},{id:"p3c",name:"Finger Extension",rx:"2×20"}]},
+  {id:"p4",name:"Phase 4 · Lower Chain",tag:"4分鐘",goal:"小腿唔再代償",items:[
+   {id:"p4a",name:"Single-leg Glute Bridge",rx:"2×12"},{id:"p4b",name:"Monster Walk",rx:"2×15步"},{id:"p4c",name:"Short Foot",rx:"3×30秒"}]}],
+ corr:[
+  {id:"bA",name:"Block A · 肩胛",tag:"8分鐘",goal:"",items:[
+   {id:"bA1",name:"Scapular Pull-up（只郁肩胛，唔屈手）",rx:"3×8"},{id:"bA2",name:"Prone Y（停2秒）",rx:"2×10"},{id:"bA3",name:"Prone T",rx:"2×10"},{id:"bA4",name:"Bottom-up Carry（無KB改單手Overhead Carry）",rx:"3×20m"}]},
+  {id:"bB",name:"Block B · Rotator Cuff",tag:"6分鐘",goal:"",items:[
+   {id:"bB1",name:"Side Lying ER",rx:"3×12"},{id:"bB2",name:"Face Pull",rx:"2×20"},{id:"bB3",name:"Band W",rx:"2×15"}]},
+  {id:"bC",name:"Block C · Forearm",tag:"8分鐘",goal:"",items:[
+   {id:"bC1",name:"Wrist Extension Eccentric（2–4kg，3秒下降）",rx:"3×15"},{id:"bC2",name:"Pronation / Supination（Hammer）",rx:"3×12"},{id:"bC3",name:"Offset Carry（單手）",rx:"4×20–30秒"},{id:"bC4",name:"Rice Bucket（如果有）",rx:"1分鐘"}]},
+  {id:"bD",name:"Block D · 臀",tag:"8分鐘",goal:"",items:[
+   {id:"bD1",name:"Bulgarian Split Squat",rx:"3×8"},{id:"bD2",name:"Single-leg RDL",rx:"3×8"},{id:"bD3",name:"Copenhagen Plank",rx:"2×20秒"},{id:"bD4",name:"Tibialis Raise",rx:"2×20"}]},
+  {id:"bE",name:"終身動作",tag:"每週保留",goal:"",items:[
+   {id:"bE1",name:"Dead Hang Progression（ECU好返先開始 10–15秒×3）",rx:"每週2次"},{id:"bE2",name:"Turkish Get-up",rx:"每週1–2次"}]}],
+ wu:[{id:"w1",name:"Face Pull",rx:"15"},{id:"w2",name:"Band ER",rx:"15"},{id:"w3",name:"Serratus Punch",rx:"15"},{id:"w4",name:"ECU Isometric",rx:"3×20秒"},{id:"w5",name:"ROM",rx:"10"}]
+};}
 const LEVELS = [
  {n:1,name:"Level 1 · 而家",items:["ROM","Isometric","Row","Ski","Sled Push"]},
  {n:2,name:"Level 2",items:["Bench","Deadlift","Wall Ball","KB Swing"]},
  {n:3,name:"Level 3",items:["Farmer Carry","Hang","Scap Pull-up","Band Pull-up"]},
  {n:4,name:"Level 4",items:["Strict Pull-up","Chest-to-bar","Ring Dip","Muscle-up"]}];
 const FEELS = ["😫","😕","😐","🙂","💪"];
+const WD = "日一二三四五六";
 
 /* ---------- 儲存 ---------- */
 const KEY = "bulletproof_v1";
-let DB = {days:{}, assessments:[], level:1, levelChecks:{}};
+let DB = {days:{}, assessments:[], level:1, levelChecks:{}, plan:null, ex:{}};
 try { const raw = localStorage.getItem(KEY); if (raw) DB = Object.assign(DB, JSON.parse(raw)); } catch(e){}
-function save(){ try{ localStorage.setItem(KEY, JSON.stringify(DB)); }catch(e){} }
+if(!DB.plan) DB.plan = defaultPlan();
+if(!DB.ex) DB.ex = {};
+let toastT;
+function toast(msg){ const t=document.getElementById("toast"); t.textContent=msg||"✅ 已儲存"; t.classList.add("show"); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove("show"),1100); }
+function save(quiet){ try{ localStorage.setItem(KEY, JSON.stringify(DB)); if(!quiet) toast(); }catch(e){ alert("儲存失敗：容量可能滿咗，請匯出備份"); } }
+function uid(){ return "x"+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
 function dkey(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
 const today = new Date(), TKEY = dkey(today);
 function day(k){ if(!DB.days[k]) DB.days[k] = {checks:{}, shoulder:null, ecu:null, feel:null, note:"", wod:false}; return DB.days[k]; }
 const D = day(TKEY);
-const isCorrDay = [2,6].includes(today.getDay()); // 星期二 / 星期六
+function isCorrDay(){ return DB.plan.corrDays.includes(today.getDay()); }
+let editMode = false;
+
+/* ---------- IndexedDB（相片） ---------- */
+let idbP = null;
+function idb(){
+ if(!("indexedDB" in window)) return Promise.reject("no idb");
+ if(!idbP) idbP = new Promise((res,rej)=>{ const r=indexedDB.open("bp_imgs",1);
+  r.onupgradeneeded=()=>r.result.createObjectStore("imgs");
+  r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); });
+ return idbP;
+}
+function imgPut(k,v){ return idb().then(db=>new Promise((res,rej)=>{ const t=db.transaction("imgs","readwrite"); t.objectStore("imgs").put(v,k); t.oncomplete=res; t.onerror=()=>rej(t.error); })); }
+function imgGet(k){ return idb().then(db=>new Promise((res,rej)=>{ const q=db.transaction("imgs").objectStore("imgs").get(k); q.onsuccess=()=>res(q.result); q.onerror=()=>rej(q.error); })); }
+function imgDel(k){ return idb().then(db=>new Promise((res,rej)=>{ const t=db.transaction("imgs","readwrite"); t.objectStore("imgs").delete(k); t.oncomplete=res; t.onerror=()=>rej(t.error); })); }
 
 /* ---------- 工具 ---------- */
 function el(html){ const t=document.createElement("template"); t.innerHTML=html.trim(); return t.content.firstChild; }
-function totalItems(){ let n = DAILY.reduce((s,b)=>s+b.items.length,0); if(isCorrDay) n += CORR.reduce((s,b)=>s+b.items.length,0); if(D.wod) n += WU.length; return n; }
+function esc(s){ return String(s??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function planCount(dayOfWeek, wod){
+ let n = DB.plan.daily.reduce((s,b)=>s+b.items.length,0);
+ if(DB.plan.corrDays.includes(dayOfWeek)) n += DB.plan.corr.reduce((s,b)=>s+b.items.length,0);
+ if(wod) n += DB.plan.wu.length;
+ return n;
+}
+function totalItems(){ return planCount(today.getDay(), D.wod); }
 function doneItems(){ return Object.values(D.checks).filter(Boolean).length; }
+function ex(id){ if(!DB.ex[id]) DB.ex[id] = {desc:"", imgs:[]}; return DB.ex[id]; }
+
+/* ---------- 動作詳情 sheet ---------- */
+let curItem = null;
+const ovl=document.getElementById("ovl"), sheet=document.getElementById("sheet");
+function openDetail(it){
+ curItem = it;
+ document.getElementById("mTitle").textContent = it.name;
+ document.getElementById("mRx").textContent = it.rx ? ("處方：" + it.rx) : "";
+ document.getElementById("mDesc").value = ex(it.id).desc || "";
+ renderImgs();
+ ovl.classList.add("on"); sheet.classList.add("on");
+}
+function closeDetail(){ ovl.classList.remove("on"); sheet.classList.remove("on"); curItem=null; renderToday(); }
+ovl.onclick = closeDetail;
+document.getElementById("mClose").onclick = closeDetail;
+document.getElementById("mDesc").oninput = function(){ if(curItem){ ex(curItem.id).desc = this.value; save(true); } };
+document.getElementById("mDesc").onchange = function(){ toast(); };
+function renderImgs(){
+ const g = document.getElementById("mImgs"); g.innerHTML = "";
+ if(!curItem) return;
+ const rec = ex(curItem.id);
+ rec.imgs.forEach(iid=>{
+  imgGet(iid).then(durl=>{
+   if(!durl) return;
+   const im = el(`<img alt="示範">`); im.src = durl;
+   im.onclick = ()=>{ if(confirm("刪除呢張相？")){ rec.imgs = rec.imgs.filter(x=>x!==iid); imgDel(iid); save(); renderImgs(); } };
+   g.appendChild(im);
+  }).catch(()=>{});
+ });
+ const add = el(`<label class="addimg">📷<span>加相</span><input type="file" accept="image/*" hidden></label>`);
+ add.querySelector("input").onchange = function(){ if(this.files[0]) addImg(this.files[0]); this.value=""; };
+ g.appendChild(add);
+}
+function addImg(file){
+ const rd = new FileReader();
+ rd.onload = ()=>{
+  const im = new Image();
+  im.onload = ()=>{
+   const s = Math.min(1, 900/Math.max(im.width,im.height));
+   const cv = document.createElement("canvas");
+   cv.width = Math.round(im.width*s); cv.height = Math.round(im.height*s);
+   cv.getContext("2d").drawImage(im,0,0,cv.width,cv.height);
+   const durl = cv.toDataURL("image/jpeg",0.75);
+   const iid = uid();
+   imgPut(iid,durl).then(()=>{ ex(curItem.id).imgs.push(iid); save(); renderImgs(); })
+    .catch(()=>alert("相片儲存失敗"));
+  };
+  im.src = rd.result;
+ };
+ rd.readAsDataURL(file);
+}
 
 /* ---------- 今日頁 ---------- */
-function block(b, prefix){
- const card = el(`<div class="card"><h2>${b.name}<span class="tag">${b.tag}</span></h2>${b.goal?`<div class="goal">🎯 ${b.goal}</div>`:""}</div>`);
- b.items.forEach(([id,nm,rx])=>{
-  const it = el(`<div class="item"><div class="box">✓</div><div class="nm">${nm}</div><div class="rx">${rx}</div></div>`);
-  const k = prefix+id;
-  if(D.checks[k]) it.classList.add("done");
-  it.onclick = ()=>{ D.checks[k]=!D.checks[k]; it.classList.toggle("done"); save(); renderHead(); };
-  card.appendChild(it);
- });
+function itemRow(it){
+ const rec = DB.ex[it.id];
+ const hasInfo = rec && (rec.desc || (rec.imgs&&rec.imgs.length));
+ const row = el(`<div class="item"><div class="box">✓</div><div class="mid"><div class="nm">${esc(it.name)}</div><div class="rx">${esc(it.rx)}${hasInfo?' <span class="hasinfo">ⓘ 有筆記</span>':""}</div></div></div>`);
+ if(D.checks[it.id]) row.classList.add("done");
+ row.querySelector(".box").onclick = (e)=>{ e.stopPropagation(); D.checks[it.id]=!D.checks[it.id]; row.classList.toggle("done"); save(); renderHead(); updateBar(); };
+ if(editMode){
+  const be = el(`<button class="ebtn">✏️</button>`), bd = el(`<button class="ebtn">🗑</button>`);
+  be.onclick = (e)=>{ e.stopPropagation();
+   const nm = prompt("動作名稱：", it.name); if(nm===null) return;
+   const rx = prompt("組數/次數（例 3×12）：", it.rx); if(rx===null) return;
+   it.name = nm.trim()||it.name; it.rx = rx.trim(); save(); renderToday(); };
+  bd.onclick = (e)=>{ e.stopPropagation(); if(confirm("刪除「"+it.name+"」？")){ removeItem(it.id); save(); renderToday(); renderHead(); } };
+  row.appendChild(be); row.appendChild(bd);
+ } else {
+  row.appendChild(el(`<div class="chev">›</div>`));
+ }
+ row.onclick = ()=>openDetail(it);
+ return row;
+}
+function removeItem(id){
+ [DB.plan.daily, DB.plan.corr].forEach(sec=>sec.forEach(b=>{ b.items = b.items.filter(x=>x.id!==id); }));
+ DB.plan.wu = DB.plan.wu.filter(x=>x.id!==id);
+}
+function blockCard(b, sec){
+ const card = el(`<div class="card"><h2><span>${esc(b.name)}</span><span class="tag">${esc(b.tag)}</span></h2>${b.goal?`<div class="goal">🎯 ${esc(b.goal)}</div>`:""}</div>`);
+ if(editMode){
+  const h = card.querySelector("h2");
+  const be = el(`<button class="ebtn">✏️</button>`), bd = el(`<button class="ebtn">🗑</button>`);
+  be.onclick = ()=>{ const nm=prompt("Block 名稱：",b.name); if(nm===null)return;
+   const tg=prompt("時間/標籤（例 8分鐘）：",b.tag); if(tg===null)return;
+   const gl=prompt("目標（可留空）：",b.goal||""); if(gl===null)return;
+   b.name=nm.trim()||b.name; b.tag=tg.trim(); b.goal=gl.trim(); save(); renderToday(); };
+  bd.onclick = ()=>{ if(confirm("刪除成個 Block「"+b.name+"」？")){ const arr=DB.plan[sec]; DB.plan[sec]=arr.filter(x=>x.id!==b.id); save(); renderToday(); renderHead(); } };
+  h.appendChild(be); h.appendChild(bd);
+ }
+ b.items.forEach(it=>card.appendChild(itemRow(it)));
+ if(editMode){
+  const add = el(`<button class="addbtn">＋ 加動作</button>`);
+  add.onclick = ()=>{ const nm=prompt("動作名稱："); if(!nm||!nm.trim())return;
+   const rx=prompt("組數/次數（例 3×12）：")||"";
+   b.items.push({id:uid(),name:nm.trim(),rx:rx.trim()}); save(); renderToday(); renderHead(); };
+  card.appendChild(add);
+ }
  return card;
 }
 function renderHead(){
- const t = totalItems(), d = doneItems();
  document.getElementById("hDate").textContent =
-  TKEY + "（" + "日一二三四五六"[today.getDay()] + "）· 完成 " + d + "/" + t + (isCorrDay ? " · 今日係 Corrective 日 💪" : "");
+  TKEY + "（" + WD[today.getDay()] + "）· 完成 " + doneItems() + "/" + totalItems() + (isCorrDay() ? " · Corrective 日 💪" : "");
 }
 function renderToday(){
  const pg = document.getElementById("pg-today"); pg.innerHTML = "";
- const t = totalItems(), d = doneItems();
  const top = el(`<div class="card"><div class="row" style="margin:0"><div class="stat"><div class="big" id="pct"></div><div class="lb">今日完成率</div></div><div class="stat"><div class="big">${streak()}</div><div class="lb">連續日數 🔥</div></div></div><div class="prog"><i id="pbar"></i></div></div>`);
  pg.appendChild(top);
- pg.appendChild(el(`<div class="sub" style="padding:4px 2px">每日 Reset（15分鐘 · 365日）</div>`));
- DAILY.forEach(b=>pg.appendChild(block(b,"")));
- if(isCorrDay){
-  pg.appendChild(el(`<div class="sub" style="padding:4px 2px">Athlete Corrective（30分鐘 · 週二/週六）</div>`));
-  CORR.forEach(b=>pg.appendChild(block(b,"")));
+ if(editMode){
+  const cd = el(`<div class="card"><h2>邊幾日做 Corrective（30分鐘）？</h2><div class="chips" id="cdChips"></div><div class="note">建議揀兩日，避開重 Pull-up 日。</div></div>`);
+  pg.appendChild(cd);
+  const chips = cd.querySelector("#cdChips");
+  for(let w=0;w<7;w++){
+   const c = el(`<button>${WD[w]}</button>`);
+   if(DB.plan.corrDays.includes(w)) c.classList.add("on");
+   c.onclick = ()=>{ const i=DB.plan.corrDays.indexOf(w);
+    if(i>=0) DB.plan.corrDays.splice(i,1); else DB.plan.corrDays.push(w);
+    save(); renderToday(); renderHead(); };
+   chips.appendChild(c);
+  }
  }
- // CrossFit warm-up toggle
+ pg.appendChild(el(`<div class="sub" style="padding:4px 2px">每日 Reset（365日）</div>`));
+ DB.plan.daily.forEach(b=>pg.appendChild(blockCard(b,"daily")));
+ if(editMode){
+  const ab = el(`<button class="addbtn">＋ 加新 Daily Block</button>`);
+  ab.onclick = ()=>{ const nm=prompt("Block 名稱："); if(!nm||!nm.trim())return;
+   DB.plan.daily.push({id:uid(),name:nm.trim(),tag:"",goal:"",items:[]}); save(); renderToday(); };
+  pg.appendChild(ab);
+ }
+ if(isCorrDay() || editMode){
+  pg.appendChild(el(`<div class="sub" style="padding:4px 2px">Athlete Corrective（${DB.plan.corrDays.slice().sort().map(w=>"週"+WD[w]).join("/")}）${!isCorrDay()&&editMode?" — 今日唔係，但編輯模式可以改":""}</div>`));
+  DB.plan.corr.forEach(b=>pg.appendChild(blockCard(b,"corr")));
+  if(editMode){
+   const ab = el(`<button class="addbtn">＋ 加新 Corrective Block</button>`);
+   ab.onclick = ()=>{ const nm=prompt("Block 名稱："); if(!nm||!nm.trim())return;
+    DB.plan.corr.push({id:uid(),name:nm.trim(),tag:"",goal:"",items:[]}); save(); renderToday(); };
+   pg.appendChild(ab);
+  }
+ }
+ // CrossFit warm-up
  const wc = el(`<div class="card"><div class="switch"><span>今日有 CrossFit 課？</span><div class="sw${D.wod?" on":""}" id="swWod"><i></i></div></div><div id="wuList"></div></div>`);
  pg.appendChild(wc);
  const wuList = wc.querySelector("#wuList");
  function renderWU(){
   wuList.innerHTML = "";
-  if(!D.wod) return;
-  wuList.appendChild(el(`<div class="goal" style="margin-top:8px">課前 Warm-up（5分鐘）一定要做：</div>`));
-  WU.forEach(([id,nm,rx])=>{
-   const it = el(`<div class="item"><div class="box">✓</div><div class="nm">${nm}</div><div class="rx">${rx}</div></div>`);
-   if(D.checks[id]) it.classList.add("done");
-   it.onclick = ()=>{ D.checks[id]=!D.checks[id]; it.classList.toggle("done"); save(); renderHead(); updateBar(); };
-   wuList.appendChild(it);
-  });
+  if(!D.wod && !editMode) return;
+  wuList.appendChild(el(`<div class="goal" style="margin-top:8px">課前 Warm-up（5分鐘）：</div>`));
+  DB.plan.wu.forEach(it=>wuList.appendChild(itemRow(it)));
+  if(editMode){
+   const add = el(`<button class="addbtn">＋ 加 Warm-up 動作</button>`);
+   add.onclick = ()=>{ const nm=prompt("動作名稱："); if(!nm||!nm.trim())return;
+    const rx=prompt("次數：")||"";
+    DB.plan.wu.push({id:uid(),name:nm.trim(),rx:rx.trim()}); save(); renderToday(); };
+   wuList.appendChild(add);
+  }
  }
  wc.querySelector("#swWod").onclick = function(){ D.wod=!D.wod; this.classList.toggle("on"); save(); renderWU(); renderHead(); updateBar(); };
  renderWU();
- // 痛感 + 感受
+ // 狀態
  const fb = el(`<div class="card"><h2>今日狀態</h2>
   <div class="row"><label>左肩痛 (0–10)</label><input type="range" min="0" max="10" id="rSh" value="${D.shoulder??0}"><div class="val" id="vSh">${D.shoulder??"–"}</div></div>
   <div class="row"><label>ECU 痛 (0–10)</label><input type="range" min="0" max="10" id="rEc" value="${D.ecu??0}"><div class="val" id="vEc">${D.ecu??"–"}</div></div>
   <div class="goal" style="margin-top:6px">訓練感受</div><div class="feel" id="feels"></div>
-  <textarea id="note" placeholder="備註：邊個動作有感覺？邊度攰？">${D.note||""}</textarea></div>`);
+  <textarea id="note" placeholder="備註：邊個動作有感覺？邊度攰？">${esc(D.note||"")}</textarea></div>`);
  pg.appendChild(fb);
- fb.querySelector("#rSh").oninput = function(){ D.shoulder=+this.value; fb.querySelector("#vSh").textContent=this.value; save(); };
- fb.querySelector("#rEc").oninput = function(){ D.ecu=+this.value; fb.querySelector("#vEc").textContent=this.value; save(); };
+ fb.querySelector("#rSh").oninput = function(){ D.shoulder=+this.value; fb.querySelector("#vSh").textContent=this.value; save(true); };
+ fb.querySelector("#rSh").onchange = ()=>toast();
+ fb.querySelector("#rEc").oninput = function(){ D.ecu=+this.value; fb.querySelector("#vEc").textContent=this.value; save(true); };
+ fb.querySelector("#rEc").onchange = ()=>toast();
  const feels = fb.querySelector("#feels");
  FEELS.forEach((f,i)=>{
   const b = el(`<button>${f}</button>`);
@@ -179,7 +359,8 @@ function renderToday(){
   b.onclick = ()=>{ D.feel=i+1; feels.querySelectorAll("button").forEach(x=>x.classList.remove("on")); b.classList.add("on"); save(); };
   feels.appendChild(b);
  });
- fb.querySelector("#note").oninput = function(){ D.note=this.value; save(); };
+ fb.querySelector("#note").oninput = function(){ D.note=this.value; save(true); };
+ fb.querySelector("#note").onchange = ()=>toast();
  updateBar();
 }
 function updateBar(){
@@ -191,9 +372,7 @@ function updateBar(){
 function dayPct(k){
  const dd = DB.days[k]; if(!dd) return 0;
  const dt = new Date(k+"T12:00:00");
- let n = DAILY.reduce((s,b)=>s+b.items.length,0);
- if([2,6].includes(dt.getDay())) n += CORR.reduce((s,b)=>s+b.items.length,0);
- if(dd.wod) n += WU.length;
+ const n = planCount(dt.getDay(), dd.wod);
  const done = Object.values(dd.checks||{}).filter(Boolean).length;
  return n? done/n : 0;
 }
@@ -205,7 +384,20 @@ function streak(){
  return s;
 }
 
+/* ---------- 編輯模式 ---------- */
+document.getElementById("btnEdit").onclick = function(){
+ editMode = !editMode;
+ this.classList.toggle("on", editMode);
+ this.textContent = editMode ? "✔ 完成編輯" : "✏️ 編輯計劃";
+ document.querySelector('[data-pg=today]').click();
+};
+
 /* ---------- 進度頁 ---------- */
+function last(n){
+ const arr=[], d=new Date(today); d.setDate(d.getDate()-(n-1));
+ for(let i=0;i<n;i++){ arr.push(dkey(d)); d.setDate(d.getDate()+1); }
+ return arr;
+}
 function renderProg(){
  const pg = document.getElementById("pg-prog"); pg.innerHTML = "";
  const keys = Object.keys(DB.days).sort();
@@ -214,7 +406,6 @@ function renderProg(){
   <div class="stat"><div class="big">${streak()}</div><div class="lb">連續日數 🔥</div></div>
   <div class="stat"><div class="big">${done7}/7</div><div class="lb">過去7日達標</div></div>
   <div class="stat"><div class="big">${keys.length}</div><div class="lb">總打卡日數</div></div></div></div>`));
- // 28日格仔
  const gcard = el(`<div class="card"><h2>過去4星期<span class="tag">綠=完成80%+</span></h2><div class="grid30" id="g28"></div></div>`);
  pg.appendChild(gcard);
  const g = gcard.querySelector("#g28");
@@ -224,12 +415,10 @@ function renderProg(){
   else if(p>0){ c.style.background="#3a4a2e"; }
   g.appendChild(c);
  });
- // 痛感趨勢
  const ccard = el(`<div class="card"><h2>痛感趨勢（30日）</h2><canvas id="chart" width="640" height="320"></canvas><div class="note">🔵 左肩　🔴 ECU　—— 趨勢向下 = 進步緊</div></div>`);
  pg.appendChild(ccard);
  drawChart(ccard.querySelector("#chart"));
- // 匯出/入
- const io = el(`<div class="card"><h2>備份</h2><button class="btn ghost" id="bExp">📤 匯出資料（複製JSON）</button><button class="btn ghost" id="bImp">📥 匯入資料</button><div class="note">換電話或者清咗瀏覽器資料之前，記得匯出備份。</div></div>`);
+ const io = el(`<div class="card"><h2>備份</h2><button class="btn ghost" id="bExp">📤 匯出資料（複製JSON）</button><button class="btn ghost" id="bImp">📥 匯入資料</button><div class="note">計劃、打卡、筆記都包括在內；相片除外。換電話前記得匯出。</div></div>`);
  pg.appendChild(io);
  io.querySelector("#bExp").onclick = ()=>{
   const s = JSON.stringify(DB);
@@ -239,14 +428,9 @@ function renderProg(){
  io.querySelector("#bImp").onclick = ()=>{
   const s = prompt("貼上之前匯出嘅 JSON：");
   if(!s) return;
-  try{ DB = Object.assign({days:{},assessments:[],level:1,levelChecks:{}}, JSON.parse(s)); save(); location.reload(); }
+  try{ DB = Object.assign({days:{},assessments:[],level:1,levelChecks:{},plan:null,ex:{}}, JSON.parse(s)); if(!DB.plan) DB.plan=defaultPlan(); save(); location.reload(); }
   catch(e){ alert("格式唔啱，匯入失敗"); }
  };
-}
-function last(n){
- const arr=[], d=new Date(today); d.setDate(d.getDate()-(n-1));
- for(let i=0;i<n;i++){ arr.push(dkey(d)); d.setDate(d.getDate()+1); }
- return arr;
 }
 function drawChart(cv){
  const ctx = cv.getContext && cv.getContext("2d"); if(!ctx) return;
@@ -309,14 +493,13 @@ function renderAssess(){
   card.appendChild(ctrl);
  });
  const sv = el(`<button class="btn">💾 儲存今次評估</button>`);
- sv.onclick = ()=>{ DB.assessments.push({date:TKEY, ...vals}); save(); renderAssess(); alert("已儲存 ✅"); };
+ sv.onclick = ()=>{ DB.assessments.push({date:TKEY, ...vals}); save(); renderAssess(); };
  card.appendChild(sv);
  pg.appendChild(card);
- // 歷史
  if(DB.assessments.length){
   const h = el(`<div class="card"><h2>歷史記錄</h2></div>`);
   [...DB.assessments].reverse().forEach(a=>{
-   h.appendChild(el(`<div class="hist"><b>${a.date}</b> ｜ 左肩痛 ${a.shPain??"–"} · ECU ${a.ecuTest??"–"} · Dead Hang ${a.deadHang||"–"} · Farmer ${a.farmer||"–"} · Flexion對稱 ${a.shFlex||"–"} · Front Rack ${a.frontRack||"–"} · ${a.fatigue||""} ${a.slsDiff||""}</div>`));
+   h.appendChild(el(`<div class="hist"><b>${a.date}</b> ｜ 左肩痛 ${a.shPain??"–"} · ECU ${a.ecuTest??"–"} · Dead Hang ${a.deadHang||"–"} · Farmer ${a.farmer||"–"} · Flexion對稱 ${a.shFlex||"–"} · Front Rack ${a.frontRack||"–"} · ${a.fatigue||""} ${esc(a.slsDiff||"")}</div>`));
   });
   pg.appendChild(h);
  }
@@ -331,7 +514,7 @@ function renderLevel(){
   const card = el(`<div class="card"><div class="lvhead"><h2 style="margin:0">${lv.name}</h2><span class="pill${DB.level===lv.n?" now":""}">${DB.level===lv.n?"而家喺度":done+"/"+lv.items.length}</span></div><div class="prog"><i style="width:${Math.round(done/lv.items.length*100)}%"></i></div></div>`);
   lv.items.forEach(x=>{
    const k = lv.n+"_"+x;
-   const it = el(`<div class="item"><div class="box">✓</div><div class="nm">${x}</div></div>`);
+   const it = el(`<div class="item"><div class="box">✓</div><div class="mid"><div class="nm">${x}</div></div></div>`);
    if(DB.levelChecks[k]) it.classList.add("done");
    it.onclick = ()=>{
     DB.levelChecks[k]=!DB.levelChecks[k]; it.classList.toggle("done");
@@ -365,6 +548,7 @@ document.querySelectorAll(".tabs button").forEach(b=>{
   if(b.dataset.pg==="today") renderToday();
  };
 });
+save(true);
 renderHead(); renderToday();
 </script>
 </body>
