@@ -897,6 +897,16 @@ function parseLine(raw){
   scheme = sc; sets = sc.length; reps = Math.round(sc.reduce((a,b)=>a+b,0)/sc.length);
  }
 
+ /* AxBxC 形式：25 x 1 x 8（重量×組×次）或 5x5x135（組×次×重量） */
+ if(sets==null || reps==null){
+  const m3 = nums.match(/(\d{1,3}(?:\.\d+)?)\s*x\s*(\d{1,3})\s*x\s*(\d{1,3}(?:\.\d+)?)/);
+  if(m3){
+   const A=+m3[1], B=+m3[2], C=+m3[3];
+   if(C > 40){ sets=A; reps=B; if(weight==null) weight=C; }        /* 5x5x135 */
+   else if(A > 12){ if(weight==null) weight=A; sets=B; reps=C; }   /* 25x1x8 */
+   else { sets=A; reps=B; if(weight==null) weight=C; }             /* 3x8x20 */
+  }
+ }
  /* AxB 形式 */
  if(sets==null || reps==null){
   for(const g of nums.matchAll(/(\d{1,3}(?:\.\d+)?)\s*x\s*(\d{1,3}(?:\.\d+)?)/g)){
@@ -947,26 +957,56 @@ function contextOf(raw){
  m = line.match(/^(\d{1,2})\s*x\s*$/); if(m) return {sets:+m[1]};
  return null;
 }
+/* 一行入面幾組唔同重量：「DB Bench Press 20lbs x2x8, 25 x 1 x 8」
+   → 拆成幾條「動作名 + 每組」再逐條解析 */
+function expandLine(raw){
+ const L = normLine(raw);
+ const hit = findMove(L);
+ if(!hit) return [raw];
+ const rest = L.replace(aliasRe(hit.alias), " ").trim();
+ const parts = rest.split(/\s*[,，;；]\s*|\s+\/\s+|\s+then\s+/).map(s=>s.trim()).filter(s=>/\d/.test(s));
+ if(parts.length < 2) return [raw];
+ return parts.map(p=>hit.alias + " " + p);
+}
+/* 淨係得數字嘅一行（例「225 x 5」「185lb 3x3」）→ 跟返上面嗰個動作 */
+function isBareSet(raw){
+ const L = normLine(raw);
+ if(!/\d/.test(L)) return false;
+ if(findMove(L)) return false;
+ return /^[\s\d.,x@()\-\/]*(?:lbs?|kgs?|#|reps?|sets?|s|sec|secs|min|mins|m|km|cals?)?[\s\d.,x@()\-\/]*$/.test(L)
+     && /\d\s*(?:x|@|lbs?|kgs?|#)|\dx\d/.test(L);
+}
 function parseWorkout(text, defUnit){
  const out = [];
- let ctx = null;
+ let ctx = null, lastAlias = null;
  String(text).split(/[\n\r;]+/).forEach(ln=>{
-  if(!ln || !ln.trim()) { return; }
+  if(!ln || !ln.trim()) return;
   const c = contextOf(ln);
   if(c){ ctx = c; return; }
-  const p = parseLine(ln);
-  if(!p) return;
-  const mv = BY_ID[p.ex];
-  if(ctx){
-   if(p.r==null && ctx.reps!=null){ p.r = ctx.reps; p.scheme = ctx.scheme||null; }
-   if(p.s==null) p.s = ctx.sets || 1;
-  }
-  if(p.s==null) p.s = 1;
-  if(p.u==="AUTO") p.u = defUnit;
-  if(p.secs!=null && p.r===p.secs) p.r = null;   /* "4x30 sec" → 30 係秒唔係次 */
-  if(mv.cardio){ if(!p.dist && !p.cal && !p.secs && !p.r) return; }
-  else if(p.r==null && p.secs==null) return;
-  out.push(p);
+  if(lastAlias && isBareSet(ln)) ln = lastAlias + " " + normLine(ln);
+  const hit0 = findMove(ln);
+  if(hit0) lastAlias = hit0.alias;
+  const subs = expandLine(ln);
+  const grp = [];
+  subs.forEach(sub=>{
+   const p = parseLine(sub);
+   if(!p) return;
+   const mv = BY_ID[p.ex];
+   if(ctx){
+    if(p.r==null && ctx.reps!=null){ p.r = ctx.reps; p.scheme = ctx.scheme||null; }
+    if(p.s==null) p.s = ctx.sets || 1;
+   }
+   if(p.s==null) p.s = 1;
+   if(p.secs!=null && p.r===p.secs) p.r = null;   /* "4x30 sec" → 30 係秒唔係次 */
+   if(mv.cardio){ if(!p.dist && !p.cal && !p.secs && !p.r) return; }
+   else if(p.r==null && p.secs==null) return;
+   p.raw = String(ln).trim();
+   grp.push(p);
+  });
+  /* 同一行入面，有明確單位嘅組負責定其他組嘅單位（25 跟返 20lbs） */
+  const explicit = grp.find(p=>p.u && p.u!=="AUTO");
+  grp.forEach(p=>{ if(p.u==="AUTO" || !p.u) p.u = explicit ? explicit.u : defUnit; });
+  grp.forEach(p=>out.push(p));
  });
  const seen = new Set();
  return out.filter(p=>{ const k=[p.ex,p.w,p.s,p.r,p.dist,p.cal,p.secs].join("|"); if(seen.has(k))return false; seen.add(k); return true; });
@@ -1364,6 +1404,9 @@ Pull-ups"></textarea>
        <input type="number" class="d" placeholder="米" style="width:74px" value="${r.dist??""}">
        <input type="number" class="c" placeholder="cal" style="width:64px" value="${r.cal??""}">
        <input type="number" class="sec" placeholder="秒" style="width:64px" value="${r.secs??""}"></div>`:""}
+      <div style="display:flex;gap:6px;align-items:center;margin-top:6px">
+       <button class="mini dup">＋ 加一組（同一動作，另一個重量）</button>
+      </div>
       ${r.raw?`<div class="note" style="margin-top:4px">📄 ${esc(r.raw)}</div>`:""}
      </div>`);
     const sel = row.querySelector("select"); sel.value = r.ex;
@@ -1386,6 +1429,10 @@ Pull-ups"></textarea>
      row.querySelector(".sec").oninput = function(){ r.secs = this.value===""?null:+this.value; };
     }
     row.querySelector(".del").onclick = ()=>{ rows.splice(i,1); drawRows(); };
+    row.querySelector(".dup").onclick = ()=>{
+     rows.splice(i+1, 0, {ex:r.ex, name:r.name, w:null, u:r.u||DB.unit, s:1, r:r.r, raw:""});
+     drawRows();
+    };
     rowsBox.appendChild(row);
    });
   }
@@ -1485,6 +1532,21 @@ Pull-ups"></textarea>
 /* 一個動作嘅所有記錄（新→舊） */
 function historyOf(exId){
  return allLifts().filter(e=>e.ex===exId).sort((a,b)=>a.date<b.date?1:a.date>b.date?-1:0);
+}
+/* 同一日同一個動作嘅所有組（輕→重） */
+function groupsOn(exId, date){
+ return ((DB.days[date]||{}).lifts||[]).filter(e=>e.ex===exId)
+  .sort((a,b)=>(a.w!=null?toKg(a.w,a.u||"lbs"):-1)-(b.w!=null?toKg(b.w,b.u||"lbs"):-1));
+}
+/* 「20 lbs ×2×8 · 25 lbs ×1×8」 */
+function groupsTxt(gs){
+ return gs.map(e=>{
+  const mv = BY_ID[e.ex]||{};
+  if(mv.cardio) return entryTxt(e);
+  const w = dispW(e);
+  const rep = e.scheme ? e.scheme.join("-") : (e.r!=null ? e.r : (e.secs?e.secs+"s":"?"));
+  return (w!=null ? fmtW(w,DB.unit) : "體重") + " ×" + (e.s||1) + "×" + rep;
+ }).join(" · ");
 }
 /* 每次訓練嘅「working set」= 嗰日最重嗰組 */
 function sessionsOf(exId){
@@ -1610,11 +1672,15 @@ function renderLift(){
    tgHtml = `<div class="tprog"><i style="width:${p}%"></i></div>
     <div class="meta"><span>🎯 目標 ${fmtW(fromKg(toKg(tg.w,tg.u),DB.unit),DB.unit)}</span><span>${p}%</span></div>`;
   }
+  const gs = groupsOn(id, cur.date);
+  const multi = gs.length > 1
+   ? `<div class="meta" style="margin-top:2px"><span style="color:var(--txt);font-size:13px">${groupsTxt(gs)}</span></div>` : "";
   const row = el(`<div class="lift">
     <div class="top"><div class="lname">${esc(mv.n)}</div><div class="now">${big}</div></div>
+    ${multi}
     <div class="meta"><div class="mtags">${tags}</div><div>${delta}</div></div>
     ${vals.length>1?sparkSVG(vals):""}
-    <div class="meta"><span>${cur.date}${best?` · 最重 ${fmtW(fromKg(best.kg,DB.unit),DB.unit)}`:""}</span><span>${ss.length} 次記錄 ›</span></div>
+    <div class="meta"><span>${cur.date}${gs.length>1?` · ${gs.length}組`:""}${best?` · 最重 ${fmtW(fromKg(best.kg,DB.unit),DB.unit)}`:""}</span><span>${ss.length} 次記錄 ›</span></div>
     ${tgHtml}
    </div>`);
   row.onclick = ()=>openMoveDetail(id);
@@ -1656,21 +1722,28 @@ function openMoveDetail(exId){
   };
   tgc.querySelector("#tgD").onclick = ()=>{ delete DB.targets[exId]; save(); closeS2(); renderLift(); };
 
-  body.appendChild(el(`<div class="goal" style="margin-top:16px">📜 歷史（撳🗑刪）</div>`));
+  body.appendChild(el(`<div class="goal" style="margin-top:16px">📜 歷史（同一日幾組會排埋一齊，撳🗑刪）</div>`));
   const hl = el(`<div></div>`); body.appendChild(hl);
-  hist.slice(0,60).forEach(e=>{
-   const r = el(`<div class="exrow"><span class="en">${e.date}</span><span class="ev">${entryTxt(e)}</span><button class="del">🗑</button></div>`);
-   r.querySelector(".del").onclick = ()=>{
-    const L = DB.days[e.date] && DB.days[e.date].lifts;
-    if(!L) return;
-    const i = L.findIndex(x=>x.id===e.id);
-    if(i>=0){ L.splice(i,1); save(); closeS2(); renderLift(); }
-   };
-   hl.appendChild(r);
+  const dates = [...new Set(hist.map(e=>e.date))].slice(0,40);
+  dates.forEach(dt=>{
+   const gs = groupsOn(exId, dt);
+   hl.appendChild(el(`<div class="kv" style="border-top:1px solid var(--line);padding-top:8px">
+     <span><b>${dt}</b>${gs.length>1?` · ${gs.length}組`:""}</span>
+     <b style="font-weight:400;font-size:12px;text-align:right">總負荷 ${tonneTxt(gs.reduce((s,e)=>s+entryLoadKg(e,BWKG()),0))}</b></div>`));
+   gs.forEach(e=>{
+    const r = el(`<div class="exrow" style="border-top:none;padding:4px 0 4px 10px"><span class="en" style="color:var(--dim)">↳</span><span class="ev" style="color:var(--txt)">${entryTxt(e)}</span><button class="del">🗑</button></div>`);
+    r.querySelector(".del").onclick = ()=>{
+     const L = DB.days[e.date] && DB.days[e.date].lifts;
+     if(!L) return;
+     const i = L.findIndex(x=>x.id===e.id);
+     if(i>=0){ L.splice(i,1); save(); openMoveDetail(exId); renderLift(); }
+    };
+    hl.appendChild(r);
+   });
   });
 
   const add = el(`<div style="margin-top:14px">
-    <div class="goal">＋ 加一次記錄</div>
+    <div class="goal">＋ 加一組（同一日可以加幾組唔同重量，加完個窗唔會閂）</div>
     <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
      <input type="date" id="aD" value="${TKEY}" max="${TKEY}" style="flex:1;min-width:140px">
      <input type="number" id="aW" placeholder="重量(${DB.unit})" style="width:100px" value="${cur&&cur.w!=null?Math.round(dispW(cur)*10)/10:""}">
@@ -1678,14 +1751,18 @@ function openMoveDetail(exId){
      <span style="color:var(--dim)">×</span>
      <input type="number" id="aR" placeholder="次" style="width:56px" value="${cur&&cur.r?cur.r:5}">
     </div>
-    <button class="btn" id="aGo" style="margin-top:8px">💾 加入</button></div>`);
+    <button class="btn" id="aGo" style="margin-top:8px">💾 加入呢組</button></div>`);
   add.querySelector("#aGo").onclick = ()=>{
    const k = add.querySelector("#aD").value || TKEY;
    const w = add.querySelector("#aW").value, s = add.querySelector("#aS").value, r = add.querySelector("#aR").value;
    if(!r && !w){ alert("最少要填重量或次數"); return; }
    liftsOf(k).push({id:uid(), ex:exId, w:w===""?null:+w, u:DB.unit, s:+s||1, r:r===""?null:+r,
                     scheme:null, dist:null, cal:null, secs:null, raw:""});
-   save(); closeS2(); renderLift(); renderToday(); toast("✅ "+k+" 已加");
+   save(); renderLift(); renderToday();
+   toast("✅ 已加，可以再加下一組");
+   openMoveDetail(exId);   /* 重畫但唔閂窗，方便連續加幾組 */
+   const b2 = document.getElementById("s2Body");
+   if(b2 && b2.querySelector("#aD")) b2.querySelector("#aD").value = k;
   };
   body.appendChild(add);
  });
