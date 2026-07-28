@@ -75,6 +75,14 @@ select,input[type=number],input[type=text]{background:var(--card2);border:1px so
 #ovl2.on{display:block;}
 #sheet2{position:fixed;left:0;right:0;bottom:0;max-height:90vh;overflow-y:auto;background:var(--card);border-radius:20px 20px 0 0;border-top:1px solid var(--line);z-index:31;padding:16px 16px calc(24px + env(safe-area-inset-bottom));transform:translateY(105%);transition:.28s;}
 #sheet2.on{transform:translateY(0);}
+#ovl3{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:40;display:none;}
+#ovl3.on{display:block;}
+#sheet3{position:fixed;left:0;right:0;bottom:0;max-height:92vh;overflow-y:auto;background:var(--card2);border-radius:20px 20px 0 0;border-top:1px solid var(--acc);z-index:41;padding:16px 16px calc(24px + env(safe-area-inset-bottom));transform:translateY(105%);transition:.28s;}
+#sheet3.on{transform:translateY(0);}
+#sheet3 h3{font-size:18px;display:flex;justify-content:space-between;align-items:center;}
+#s3Close{background:var(--card);border:1px solid var(--line);color:var(--txt);border-radius:99px;width:32px;height:32px;font-size:16px;flex-shrink:0;}
+.mpick button{position:relative;}
+.mpick button .ord{position:absolute;top:-6px;right:-4px;background:var(--acc);color:#fff;font-size:10px;font-weight:700;width:16px;height:16px;border-radius:50%;line-height:16px;}
 #mClose,#s2Close{background:var(--card2);border:1px solid var(--line);color:var(--txt);border-radius:99px;width:32px;height:32px;font-size:16px;flex-shrink:0;}
 .imgs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px;}
 .imgs img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;border:1px solid var(--line);}
@@ -167,6 +175,12 @@ select,input[type=number],input[type=text]{background:var(--card2);border:1px so
 <div id="s2Body"></div>
 </div>
 
+<div id="ovl3"></div>
+<div id="sheet3">
+<h3><span id="s3Title"></span><button id="s3Close">✕</button></h3>
+<div id="s3Body"></div>
+</div>
+
 <script>
 "use strict";
 /* ---------- 預設計劃（第一次用先會載入，之後全部可自己改） ---------- */
@@ -235,15 +249,68 @@ function imgDel(k){ return idb().then(db=>new Promise((res,rej)=>{ const t=db.tr
 /* ---------- 工具 ---------- */
 function el(html){ const t=document.createElement("template"); t.innerHTML=html.trim(); return t.content.firstChild; }
 function esc(s){ return String(s??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
-function planCount(dayOfWeek, wod){
- let n = DB.plan.daily.reduce((s,b)=>s+b.items.length,0);
- if(DB.plan.corrDays.includes(dayOfWeek)) n += DB.plan.corr.reduce((s,b)=>s+b.items.length,0);
- if(wod) n += DB.plan.wu.length;
+/* block 今日計唔計入完成率
+   b.optIn = true  → 預設唔計，撳「今日要做」先計（適合每週得一兩次嘅動作）
+   b.optIn = false → 預設計，撳走先唔計 */
+function blockOn(k, b){
+ const dd = DB.days[k] || {};
+ return b.optIn ? !!(dd.on && dd.on[b.id]) : !(dd.skip && dd.skip[b.id]);
+}
+function toggleBlock(k, b){
+ const d = day(k);
+ if(b.optIn){ d.on = d.on || {}; if(d.on[b.id]) delete d.on[b.id]; else d.on[b.id]=1; }
+ else { d.skip = d.skip || {}; if(d.skip[b.id]) delete d.skip[b.id]; else d.skip[b.id]=1; }
+}
+/* 某一日真係要做嘅 block */
+function blocksFor(k){
+ const dt = new Date(k+"T12:00:00");
+ const arr = DB.plan.daily.filter(b=>blockOn(k,b));
+ if(DB.plan.corrDays.includes(dt.getDay()))
+  DB.plan.corr.forEach(b=>{ if(blockOn(k,b)) arr.push(b); });
+ return arr;
+}
+/* 一次性遷移：終身動作（每週保留）改做 opt-in，唔好再拖低完成率 */
+if(!DB._v2){
+ const bE = (DB.plan.corr||[]).find(b=>b.id==="bE");
+ if(bE) bE.optIn = true;
+ DB._v2 = 1;
+}
+function planCount(k){
+ const dd = DB.days[k] || {};
+ let n = blocksFor(k).reduce((s,b)=>s+b.items.length,0);
+ if(dd.wod) n += DB.plan.wu.length;
  return n;
 }
-function totalItems(){ return planCount(today.getDay(), D.wod); }
-function doneItems(){ return Object.values(D.checks).filter(Boolean).length; }
+/* 只計仲喺計劃入面（無 skip）嘅剔 */
+function doneCount(k){
+ const dd = DB.days[k] || {}, ch = dd.checks || {};
+ let n = 0;
+ blocksFor(k).forEach(b=>b.items.forEach(it=>{ if(ch[it.id]) n++; }));
+ if(dd.wod) DB.plan.wu.forEach(it=>{ if(ch[it.id]) n++; });
+ return n;
+}
+function totalItems(){ return planCount(TKEY); }
+function doneItems(){ return doneCount(TKEY); }
 function ex(id){ if(!DB.ex[id]) DB.ex[id] = {desc:"", imgs:[]}; return DB.ex[id]; }
+
+/* ---------- 痛感追蹤部位（可自己加） ---------- */
+if(!DB.painParts) DB.painParts = [];
+const PAIN_FIXED = [{id:"shoulder",n:"左肩痛",fixed:1,c:"#4f8ef7"},{id:"ecu",n:"ECU / 手腕痛",fixed:1,c:"#ff6b6b"}];
+const PAIN_COLORS = ["#ffb347","#3ddc84","#c586ff","#4dd0e1","#ff8fab","#a3e635"];
+function PARTS(){
+ return PAIN_FIXED.concat((DB.painParts||[]).map((p,i)=>Object.assign({c:PAIN_COLORS[i%PAIN_COLORS.length]},p)));
+}
+function painGet(dd,id){
+ if(!dd) return null;
+ if(id==="shoulder") return dd.shoulder;
+ if(id==="ecu") return dd.ecu;
+ return dd.pain ? dd.pain[id] : null;
+}
+function painSet(dd,id,v){
+ if(id==="shoulder") dd.shoulder = v;
+ else if(id==="ecu") dd.ecu = v;
+ else { dd.pain = dd.pain || {}; dd.pain[id] = v; }
+}
 
 /* ---------- 動作詳情 sheet ---------- */
 let curItem = null;
@@ -297,7 +364,7 @@ function addImg(file){
 }
 
 /* ---------- 今日頁 ---------- */
-function itemRow(it){
+function itemRow(it, blk){
  const rec = DB.ex[it.id];
  const hasInfo = rec && (rec.desc || (rec.imgs&&rec.imgs.length));
  const row = el(`<div class="item"><div class="box">✓</div><div class="mid"><div class="nm">${esc(it.name)}</div><div class="rx">${esc(it.rx)}${hasInfo?' <span class="hasinfo">ⓘ 有筆記</span>':""}</div></div></div>`);
@@ -310,6 +377,7 @@ function itemRow(it){
    const rx = prompt("組數/次數（例 3×12）：", it.rx); if(rx===null) return;
    it.name = nm.trim()||it.name; it.rx = rx.trim(); save(); renderToday(); };
   bd.onclick = (e)=>{ e.stopPropagation(); if(confirm("刪除「"+it.name+"」？")){ removeItem(it.id); save(); renderToday(); renderHead(); } };
+  if(blk) row.appendChild(arrowBtns(blk.items, it.id, ()=>renderToday()));
   row.appendChild(be); row.appendChild(bd);
  } else {
   row.appendChild(el(`<div class="chev">›</div>`));
@@ -321,19 +389,54 @@ function removeItem(id){
  [DB.plan.daily, DB.plan.corr].forEach(sec=>sec.forEach(b=>{ b.items = b.items.filter(x=>x.id!==id); }));
  DB.plan.wu = DB.plan.wu.filter(x=>x.id!==id);
 }
+/* 上下移動 block / 動作 */
+function moveIn(arr, id, dir){
+ const i = arr.findIndex(x=>x.id===id);
+ const j = i + dir;
+ if(i<0 || j<0 || j>=arr.length) return false;
+ const t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+ return true;
+}
+function arrowBtns(arr, id, after){
+ const wrap = el(`<span style="display:flex;gap:4px"></span>`);
+ const up = el(`<button class="ebtn">↑</button>`), dn = el(`<button class="ebtn">↓</button>`);
+ const i = arr.findIndex(x=>x.id===id);
+ if(i<=0) up.style.opacity=.3;
+ if(i<0 || i>=arr.length-1) dn.style.opacity=.3;
+ up.onclick = e=>{ e.stopPropagation(); if(moveIn(arr,id,-1)){ save(true); after(); } };
+ dn.onclick = e=>{ e.stopPropagation(); if(moveIn(arr,id, 1)){ save(true); after(); } };
+ wrap.appendChild(up); wrap.appendChild(dn);
+ return wrap;
+}
 function blockCard(b, sec){
- const card = el(`<div class="card"><h2><span>${esc(b.name)}</span><span class="tag">${esc(b.tag)}</span></h2>${b.goal?`<div class="goal">🎯 ${esc(b.goal)}</div>`:""}</div>`);
+ const on = blockOn(TKEY, b);
+ const card = el(`<div class="card"${on?"":' style="opacity:.55"'}><h2><span>${esc(b.name)}</span><span class="tag">${esc(b.tag)}</span></h2>${b.goal?`<div class="goal">🎯 ${esc(b.goal)}</div>`:""}</div>`);
  if(editMode){
   const h = card.querySelector("h2");
+  const bo = el(`<button class="ebtn" title="計分方式">${b.optIn?"☐":"☑"}</button>`);
+  bo.onclick = ()=>{
+   b.optIn = !b.optIn;
+   alert(b.optIn ? "「"+b.name+"」而家係預設唔計入完成率，做嗰日撳一撳先計。\n（啱每週得一兩次嘅動作）"
+                 : "「"+b.name+"」而家係預設計入完成率。");
+   save(); renderToday(); renderHead();
+  };
+  h.appendChild(bo);
   const be = el(`<button class="ebtn">✏️</button>`), bd = el(`<button class="ebtn">🗑</button>`);
   be.onclick = ()=>{ const nm=prompt("Block 名稱：",b.name); if(nm===null)return;
    const tg=prompt("時間/標籤（例 8分鐘）：",b.tag); if(tg===null)return;
    const gl=prompt("目標（可留空）：",b.goal||""); if(gl===null)return;
    b.name=nm.trim()||b.name; b.tag=tg.trim(); b.goal=gl.trim(); save(); renderToday(); };
   bd.onclick = ()=>{ if(confirm("刪除成個 Block「"+b.name+"」？")){ const arr=DB.plan[sec]; DB.plan[sec]=arr.filter(x=>x.id!==b.id); save(); renderToday(); renderHead(); } };
+  h.appendChild(arrowBtns(DB.plan[sec], b.id, ()=>{ renderToday(); }));
   h.appendChild(be); h.appendChild(bd);
+ } else {
+  /* 今日做唔做呢個 block（唔做就唔計入完成率） */
+  const lbl = on ? "今日要做" : (b.optIn ? "今日唔計（撳開＝今日要做）" : "今日唔做（唔計分母）");
+  const sw = el(`<div class="switch" style="padding:2px 2px 8px"><span style="font-size:13px;color:var(--dim)">${lbl}</span><div class="sw${on?" on":""}"><i></i></div></div>`);
+  sw.querySelector(".sw").onclick = ()=>{ toggleBlock(TKEY, b); save(); renderToday(); renderHead(); };
+  card.appendChild(sw);
  }
- b.items.forEach(it=>card.appendChild(itemRow(it)));
+ if(on || editMode) b.items.forEach(it=>card.appendChild(itemRow(it, b)));
  if(editMode){
   const add = el(`<button class="addbtn">＋ 加動作</button>`);
   add.onclick = ()=>{ const nm=prompt("動作名稱："); if(!nm||!nm.trim())return;
@@ -390,7 +493,7 @@ function renderToday(){
   wuList.innerHTML = "";
   if(!D.wod && !editMode) return;
   wuList.appendChild(el(`<div class="goal" style="margin-top:8px">課前 Warm-up（5分鐘）：</div>`));
-  DB.plan.wu.forEach(it=>wuList.appendChild(itemRow(it)));
+  DB.plan.wu.forEach(it=>wuList.appendChild(itemRow(it, {items:DB.plan.wu})));
   if(editMode){
    const add = el(`<button class="addbtn">＋ 加 Warm-up 動作</button>`);
    add.onclick = ()=>{ const nm=prompt("動作名稱："); if(!nm||!nm.trim())return;
@@ -402,16 +505,38 @@ function renderToday(){
  wc.querySelector("#swWod").onclick = function(){ D.wod=!D.wod; this.classList.toggle("on"); save(); renderWU(); renderHead(); updateBar(); };
  renderWU();
  // 狀態
- const fb = el(`<div class="card"><h2>今日狀態</h2>
-  <div class="row"><label>左肩痛 (0–10)</label><input type="range" min="0" max="10" id="rSh" value="${D.shoulder??0}"><div class="val" id="vSh">${D.shoulder??"–"}</div></div>
-  <div class="row"><label>ECU 痛 (0–10)</label><input type="range" min="0" max="10" id="rEc" value="${D.ecu??0}"><div class="val" id="vEc">${D.ecu??"–"}</div></div>
-  <div class="goal" style="margin-top:6px">訓練感受</div><div class="feel" id="feels"></div>
+ const fb = el(`<div class="card"><h2>今日狀態<span class="tag">痛感 0–10</span></h2>
+  <div id="painList"></div>
+  <button class="addbtn" id="bAddPain">＋ 加追蹤部位</button>
+  <div class="goal" style="margin-top:10px">訓練感受</div><div class="feel" id="feels"></div>
   <textarea id="note" placeholder="備註：邊個動作有感覺？邊度攰？">${esc(D.note||"")}</textarea></div>`);
  pg.appendChild(fb);
- fb.querySelector("#rSh").oninput = function(){ D.shoulder=+this.value; fb.querySelector("#vSh").textContent=this.value; save(true); };
- fb.querySelector("#rSh").onchange = ()=>toast();
- fb.querySelector("#rEc").oninput = function(){ D.ecu=+this.value; fb.querySelector("#vEc").textContent=this.value; save(true); };
- fb.querySelector("#rEc").onchange = ()=>toast();
+ const pl = fb.querySelector("#painList");
+ function drawPain(){
+  pl.innerHTML = "";
+  PARTS().forEach(p=>{
+   const v = painGet(D, p.id);
+   const r = el(`<div class="row"><label>${esc(p.n)}</label>
+     <input type="range" min="0" max="10" value="${v??0}"><div class="val">${v??"–"}</div>
+     ${p.fixed?"":`<button class="ebtn pdel">🗑</button>`}</div>`);
+   const rng = r.querySelector("input"), val = r.querySelector(".val");
+   rng.oninput = function(){ painSet(D,p.id,+this.value); val.textContent=this.value; save(true); };
+   rng.onchange = ()=>toast();
+   const del = r.querySelector(".pdel");
+   if(del) del.onclick = ()=>{
+    if(!confirm(`唔再追蹤「${p.n}」？（過往記錄會保留）`)) return;
+    DB.painParts = DB.painParts.filter(x=>x.id!==p.id); save(); drawPain();
+   };
+   pl.appendChild(r);
+  });
+ }
+ drawPain();
+ fb.querySelector("#bAddPain").onclick = ()=>{
+  const n = prompt("部位名稱（例：右膝、腰、右手肘）：");
+  if(!n || !n.trim()) return;
+  DB.painParts.push({id:"p_"+uid(), n:n.trim()});
+  save(); drawPain();
+ };
  const feels = fb.querySelector("#feels");
  FEELS.forEach((f,i)=>{
   const b = el(`<button>${f}</button>`);
@@ -430,11 +555,9 @@ function updateBar(){
  if(bar) bar.style.width = pct + "%";
 }
 function dayPct(k){
- const dd = DB.days[k]; if(!dd) return 0;
- const dt = new Date(k+"T12:00:00");
- const n = planCount(dt.getDay(), dd.wod);
- const done = Object.values(dd.checks||{}).filter(Boolean).length;
- return n? done/n : 0;
+ if(!DB.days[k]) return 0;
+ const n = planCount(k);
+ return n ? doneCount(k)/n : 0;
 }
 function streak(){
  let s=0, d=new Date(today);
@@ -475,7 +598,9 @@ function renderProg(){
   else if(p>0){ c.style.background="#3a4a2e"; }
   g.appendChild(c);
  });
- const ccard = el(`<div class="card"><h2>痛感趨勢（30日）</h2><canvas id="chart" width="640" height="320"></canvas><div class="note">🔵 左肩　🔴 ECU　—— 趨勢向下 = 進步緊</div></div>`);
+ const ccard = el(`<div class="card"><h2>痛感趨勢（30日）</h2><canvas id="chart" width="640" height="320"></canvas>
+   <div class="legend">${PARTS().map(p=>`<span><i style="background:${p.c}"></i>${esc(p.n)}</span>`).join("")}</div>
+   <div class="note">趨勢向下 = 進步緊</div></div>`);
  pg.appendChild(ccard);
  drawChart(ccard.querySelector("#chart"));
  const io = el(`<div class="card"><h2>備份</h2><button class="btn ghost" id="bExp">📤 匯出資料（複製JSON）</button><button class="btn ghost" id="bImp">📥 匯入資料</button><div class="note">計劃、打卡、筆記都包括在內；相片除外。換電話前記得匯出。</div></div>`);
@@ -503,21 +628,21 @@ function drawChart(cv){
   ctx.fillText(v, 4, y+6);
  }
  const ks = last(30);
- function line(field,color){
-  ctx.strokeStyle=color; ctx.lineWidth=3; ctx.beginPath(); let started=false;
+ function line(pid,color){
+  const pts = [];
   ks.forEach((k,i)=>{
-   const dd=DB.days[k]; if(!dd||dd[field]==null) return;
-   const x = pad+(W-pad-12)*i/29, y = H-pad-(H-2*pad)*dd[field]/10;
-   if(!started){ ctx.moveTo(x,y); started=true; } else ctx.lineTo(x,y);
+   const v = painGet(DB.days[k], pid);
+   if(v==null) return;
+   pts.push([pad+(W-pad-12)*i/29, H-pad-(H-2*pad)*v/10]);
   });
+  if(!pts.length) return;
+  ctx.strokeStyle=color; ctx.lineWidth=3; ctx.beginPath();
+  pts.forEach((q,i)=>i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]));
   ctx.stroke();
-  ks.forEach((k,i)=>{
-   const dd=DB.days[k]; if(!dd||dd[field]==null) return;
-   const x = pad+(W-pad-12)*i/29, y = H-pad-(H-2*pad)*dd[field]/10;
-   ctx.fillStyle=color; ctx.beginPath(); ctx.arc(x,y,5,0,7); ctx.fill();
-  });
+  ctx.fillStyle=color;
+  pts.forEach(q=>{ ctx.beginPath(); ctx.arc(q[0],q[1],5,0,7); ctx.fill(); });
  }
- line("shoulder","#4f8ef7"); line("ecu","#ff6b6b");
+ PARTS().forEach(p=>line(p.id, p.c));
 }
 
 /* ---------- 評估頁 ---------- */
@@ -939,15 +1064,142 @@ function closeS2(){ ovl2.classList.remove("on"); sheet2.classList.remove("on"); 
 ovl2.onclick = closeS2;
 document.getElementById("s2Close").onclick = closeS2;
 
-/* ---------- 動作選單 ---------- */
+/* ---------- 第三層 sheet（自訂動作編輯器） ---------- */
+const ovl3=document.getElementById("ovl3"), sheet3=document.getElementById("sheet3");
+function openS3(title, build){
+ document.getElementById("s3Title").textContent = title;
+ const b = document.getElementById("s3Body"); b.innerHTML="";
+ build(b);
+ ovl3.classList.add("on"); sheet3.classList.add("on");
+}
+function closeS3(){ ovl3.classList.remove("on"); sheet3.classList.remove("on"); }
+ovl3.onclick = closeS3;
+document.getElementById("s3Close").onclick = closeS3;
+
+/* ---------- 自訂動作 + 動作選單 ---------- */
+if(!DB.custom) DB.custom = [];
 let MOVE_OPTS = "";
-(function(){
- const groups = {W:[],G:[],M:[]};
- LIB.forEach(m=>groups[m.mod].push(m));
- MOVE_OPTS = ["W","G","M"].map(g=>
-  `<optgroup label="${MOD[g]}">` + groups[g].sort((a,b)=>a.n.localeCompare(b.n))
-   .map(m=>`<option value="${m.id}">${esc(m.n)}</option>`).join("") + `</optgroup>`).join("");
-})();
+function rebuildLib(){
+ /* 抽走舊嘅自訂動作 */
+ for(let i=LIB.length-1;i>=0;i--) if(LIB[i]._c){ delete BY_ID[LIB[i].id]; LIB.splice(i,1); }
+ (DB.custom||[]).forEach(c=>{
+  const o = {id:c.id, n:c.n, a:c.a||[], m:c.m||{legs:1}, pat:c.pat||"squat", mod:c.mod||"W",
+             bw:c.bw||0, cardio:!!c.cardio, _c:true};
+  LIB.push(o); BY_ID[o.id] = o;
+ });
+ /* 重建 OCR 別名表（長嘅優先） */
+ ALIAS.splice(0, ALIAS.length);
+ LIB.forEach(mv=>(mv.a||[]).forEach(al=>{ if(al && al.trim()) ALIAS.push([al.trim().toLowerCase(), mv.id]); }));
+ ALIAS.sort((a,b)=>b[0].length-a[0].length);
+ /* 重建 <select> 選項 */
+ const groups = {W:[],G:[],M:[]}, cus = [];
+ LIB.forEach(m=>{ if(m._c) cus.push(m); else groups[m.mod].push(m); });
+ MOVE_OPTS = `<option value="__new__">➕ 新增自訂動作…</option>`
+  + (cus.length ? `<optgroup label="⭐ 我自訂">` + cus.sort((a,b)=>a.n.localeCompare(b.n))
+      .map(m=>`<option value="${m.id}">${esc(m.n)}</option>`).join("") + `</optgroup>` : "")
+  + ["W","G","M"].map(g=>
+     `<optgroup label="${MOD[g]}">` + groups[g].sort((a,b)=>a.n.localeCompare(b.n))
+      .map(m=>`<option value="${m.id}">${esc(m.n)}</option>`).join("") + `</optgroup>`).join("");
+}
+rebuildLib();
+
+/* 主要肌群（按揀嘅次序分配權重：第1個佔最多） */
+function weightsFrom(sel){
+ const n = sel.length, tot = n*(n+1)/2, m = {};
+ sel.forEach((k,i)=>{ m[k] = Math.round((n-i)/tot*1000)/1000; });
+ return m;
+}
+function openMoveEditor(editId, onSaved, prefillName){
+ const ex = (DB.custom||[]).find(c=>c.id===editId);
+ let picked = ex ? Object.keys(ex.m).sort((a,b)=>ex.m[b]-ex.m[a]) : [];
+ openS3(ex ? "改動作 · "+ex.n : "新增自訂動作", body=>{
+  const f = el(`<div>
+   <div class="goal">動作名稱 *</div>
+   <input type="text" id="cN" style="width:100%" placeholder="例：Goblet Squat Jump" value="${ex?esc(ex.n):esc(prefillName||"")}">
+
+   <div class="goal" style="margin-top:14px">主要肌群 *（照次序撳，第 1 個計最重）</div>
+   <div class="chips mpick" id="cM"></div>
+   <div class="note" id="cMw"></div>
+
+   <div class="goal" style="margin-top:14px">動作模式</div>
+   <select id="cP" style="width:100%">${Object.keys(PAT).map(k=>`<option value="${k}">${PAT[k]}</option>`).join("")}</select>
+
+   <div class="goal" style="margin-top:14px">分類</div>
+   <div class="seg" id="cMod" style="margin-top:4px">${["W","G","M"].map(g=>`<button data-g="${g}">${MOD[g]}</button>`).join("")}</div>
+
+   <div class="goal" style="margin-top:10px">用唔用體重計負荷？</div>
+   <select id="cB" style="width:100%">
+    <option value="0">唔使 — 淨係計外部重量（例 Barbell / DB）</option>
+    <option value="0.3">少少（約體重 30%）</option>
+    <option value="0.6">中等（約體重 60%，例 Push-up）</option>
+    <option value="0.85">大部分（85%，例 Pistol）</option>
+    <option value="1">全身（100%，例 Pull-up / 跳躍）</option>
+   </select>
+   <div class="note">體重動作照樣可以再填外部重量（例 Goblet 拎住 20kg），兩樣會加埋一齊計。</div>
+
+   <div class="goal" style="margin-top:14px">OCR 別名（可留空，用逗號分隔）</div>
+   <input type="text" id="cA" style="width:100%" placeholder="goblet squat jump, gsj" value="${ex?esc((ex.a||[]).join(", ")):""}">
+   <div class="note">寫低你張 cap 圖 / app 通常點寫，OCR 就認得。動作名稱會自動加入。</div>
+
+   <div class="btnrow" style="margin-top:16px">
+    <button class="btn" style="margin:0" id="cS">💾 儲存</button>
+    ${ex?`<button class="btn ghost" style="margin:0;flex:0 0 34%" id="cD">🗑 刪除</button>`:""}
+   </div>
+  </div>`);
+  body.appendChild(f);
+
+  const mBox = f.querySelector("#cM"), mW = f.querySelector("#cMw");
+  function drawM(){
+   mBox.innerHTML = "";
+   MUS_ORDER.forEach(k=>{
+    const i = picked.indexOf(k);
+    const b = el(`<button>${MUS[k]}${i>=0?`<span class="ord">${i+1}</span>`:""}</button>`);
+    if(i>=0) b.classList.add("on");
+    b.onclick = ()=>{ const j=picked.indexOf(k); if(j>=0) picked.splice(j,1); else picked.push(k); drawM(); };
+    mBox.appendChild(b);
+   });
+   mW.textContent = picked.length
+    ? "負荷分配：" + picked.map((k,i)=>MUS[k]+" "+Math.round(weightsFrom(picked)[k]*100)+"%").join(" · ")
+    : "未揀";
+  }
+  drawM();
+
+  f.querySelector("#cP").value = ex ? ex.pat : "squat";
+  f.querySelector("#cB").value = ex ? String(ex.bw||0) : "0";
+  let modG = ex ? ex.mod : "W";
+  f.querySelectorAll("#cMod button").forEach(b=>{
+   if(b.dataset.g===modG) b.classList.add("on");
+   b.onclick = ()=>{ modG=b.dataset.g; f.querySelectorAll("#cMod button").forEach(x=>x.classList.toggle("on",x.dataset.g===modG)); };
+  });
+
+  f.querySelector("#cS").onclick = ()=>{
+   const nm = f.querySelector("#cN").value.trim();
+   if(!nm){ alert("要填動作名稱"); return; }
+   if(!picked.length){ alert("最少揀一個肌群"); return; }
+   const aliases = [nm.toLowerCase()].concat(
+     f.querySelector("#cA").value.split(/[,，]/).map(s=>s.trim().toLowerCase()).filter(Boolean));
+   const rec = {
+    id: ex ? ex.id : "c_"+uid(),
+    n: nm, a: [...new Set(aliases)], m: weightsFrom(picked),
+    pat: f.querySelector("#cP").value, mod: modG,
+    bw: +f.querySelector("#cB").value || 0,
+    cardio: f.querySelector("#cP").value === "cardio"
+   };
+   if(ex) Object.assign(ex, rec); else DB.custom.push(rec);
+   rebuildLib(); save(); closeS3();
+   if(onSaved) onSaved(rec.id);
+   if(document.getElementById("pg-lift").classList.contains("on")) renderLift();
+  };
+  const del = f.querySelector("#cD");
+  if(del) del.onclick = ()=>{
+   const used = allLifts().filter(e=>e.ex===ex.id).length;
+   if(!confirm(used ? `「${ex.n}」有 ${used} 條記錄，刪咗個動作啲記錄就會睇唔到。確定？` : `刪除「${ex.n}」？`)) return;
+   DB.custom = DB.custom.filter(c=>c.id!==ex.id);
+   rebuildLib(); save(); closeS3();
+   if(document.getElementById("pg-lift").classList.contains("on")) renderLift();
+  };
+ });
+}
 
 /* ============================================================
    Cap 圖 OCR
@@ -1048,6 +1300,7 @@ BB Bench Press 3x8 135lbs
 Thrusters 95lb
 Pull-ups"></textarea>
    <button class="btn ghost" id="bParse">🔍 重新解析</button>
+   <div id="unm"></div>
    <div class="goal" style="margin-top:6px">④ 覆核 / 修改，撳「加入記錄」</div>
    <div id="rows"></div>
    <button class="addbtn" id="bAddRow">＋ 手動加一行</button>
@@ -1114,7 +1367,14 @@ Pull-ups"></textarea>
       ${r.raw?`<div class="note" style="margin-top:4px">📄 ${esc(r.raw)}</div>`:""}
      </div>`);
     const sel = row.querySelector("select"); sel.value = r.ex;
-    sel.onchange = ()=>{ r.ex = sel.value; r.name = (BY_ID[r.ex]||{}).n; drawRows(); };
+    sel.onchange = ()=>{
+     if(sel.value === "__new__"){
+      sel.value = r.ex;
+      openMoveEditor(null, newId=>{ r.ex = newId; r.name = (BY_ID[newId]||{}).n; drawRows(); });
+      return;
+     }
+     r.ex = sel.value; r.name = (BY_ID[r.ex]||{}).n; drawRows();
+    };
     row.querySelector(".u").value = r.u || DB.unit;
     row.querySelector(".w").oninput = function(){ r.w = this.value===""?null:+this.value; };
     row.querySelector(".u").onchange = function(){ r.u = this.value; };
@@ -1129,9 +1389,36 @@ Pull-ups"></textarea>
     rowsBox.appendChild(row);
    });
   }
+  /* 有數字但認唔到動作嘅行 → 多數係動作庫未有 */
+  function unmatched(text){
+   return String(text).split(/[\n\r;]+/).map(s=>s.trim()).filter(s=>{
+    if(s.length<3) return false;
+    const L = normLine(s);
+    if(!/\d/.test(L)) return false;
+    if(findMove(L)) return false;
+    if(contextOf(s)) return false;
+    if(/^(wod|amrap|emom|rft|for time|rest|每分鐘|每組|cash|buy)/.test(L)) return false;
+    return /[a-z一-鿿]{3,}/.test(L);
+   });
+  }
+  function drawUnmatched(){
+   const box = src.querySelector("#unm"); box.innerHTML = "";
+   const u = unmatched(ta.value);
+   if(!u.length) return;
+   box.appendChild(el(`<div class="warnbox warn" style="margin-top:10px">🤔 呢 ${u.length} 行有數字但認唔到動作。如果係動作庫未有（例 Goblet Squat Jump），撳「＋ 加入動作庫」教一次，以後 OCR 就自動認得。</div>`));
+   u.forEach(line=>{
+    const guess = line.replace(/[\d.．]+\s*(lbs?|kgs?|#|reps?|sets?|組|次|秒|sec|min|m|cal)?/gi," ")
+                      .replace(/[x×@\-–—:：()]+/g," ").replace(/\s+/g," ").trim();
+    const r = el(`<div class="exrow"><span class="en">${esc(line)}</span><button class="mini pri">＋ 加入動作庫</button></div>`);
+    r.querySelector("button").onclick = ()=>{
+     openMoveEditor(null, ()=>{ reparse(); }, guess);
+    };
+    box.appendChild(r);
+   });
+  }
   function reparse(){
    rows = parseWorkout(ta.value, DB.unit);
-   drawRows();
+   drawRows(); drawUnmatched();
    log.textContent = rows.length ? "✅ 解析到 "+rows.length+" 個動作" : "⚠️ 認唔到動作，試下手動加";
   }
   if(presetText) reparse(); else drawRows();
@@ -1250,6 +1537,23 @@ function renderLift(){
  pg.appendChild(io);
  io.querySelector("#bImp2").onclick = ()=>openImport(TKEY,"",null);
  io.querySelector("#bMan").onclick = ()=>openImport(shiftKey(1),"",null);
+
+ /* --- 自訂動作 --- */
+ const cc = el(`<div class="card"><h2>自訂動作<span class="tag">動作庫 ${LIB.length} 個</span></h2>
+   <div class="goal">內置庫冇嘅動作，加咗之後就會出現喺所有下拉選單，OCR 亦都認得。</div>
+   <div id="cList"></div>
+   <button class="addbtn" id="bNewMv">＋ 新增自訂動作</button></div>`);
+ pg.appendChild(cc);
+ const cl = cc.querySelector("#cList");
+ (DB.custom||[]).forEach(c=>{
+  const used = allLifts().filter(e=>e.ex===c.id).length;
+  const mm = Object.keys(c.m).sort((a,b)=>c.m[b]-c.m[a]).map(k=>MUS[k]).join("·");
+  const r = el(`<div class="exrow"><span class="en">${esc(c.n)}</span><span class="ev">${mm} · ${used}條</span><button class="mini">✏️</button></div>`);
+  r.querySelector("button").onclick = ()=>openMoveEditor(c.id);
+  cl.appendChild(r);
+ });
+ if(!(DB.custom||[]).length) cl.appendChild(el(`<div class="note">仲未有自訂動作。</div>`));
+ cc.querySelector("#bNewMv").onclick = ()=>openMoveEditor(null);
 
  const st = el(`<div class="card"><h2>設定</h2>
    <div class="row"><label>顯示單位</label><div class="seg" style="flex:2;margin:0" id="segU">
