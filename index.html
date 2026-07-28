@@ -70,11 +70,63 @@ select,input[type=number],input[type=text]{background:var(--card2);border:1px so
 #ovl.on{display:block;}
 #sheet{position:fixed;left:0;right:0;bottom:0;max-height:88vh;overflow-y:auto;background:var(--card);border-radius:20px 20px 0 0;border-top:1px solid var(--line);z-index:21;padding:16px 16px calc(24px + env(safe-area-inset-bottom));transform:translateY(105%);transition:.28s;}
 #sheet.on{transform:translateY(0);}
-#sheet h3{font-size:18px;display:flex;justify-content:space-between;align-items:center;}
-#mClose{background:var(--card2);border:1px solid var(--line);color:var(--txt);border-radius:99px;width:32px;height:32px;font-size:16px;}
+#sheet h3,#sheet2 h3{font-size:18px;display:flex;justify-content:space-between;align-items:center;}
+#ovl2{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:30;display:none;}
+#ovl2.on{display:block;}
+#sheet2{position:fixed;left:0;right:0;bottom:0;max-height:90vh;overflow-y:auto;background:var(--card);border-radius:20px 20px 0 0;border-top:1px solid var(--line);z-index:31;padding:16px 16px calc(24px + env(safe-area-inset-bottom));transform:translateY(105%);transition:.28s;}
+#sheet2.on{transform:translateY(0);}
+#mClose,#s2Close{background:var(--card2);border:1px solid var(--line);color:var(--txt);border-radius:99px;width:32px;height:32px;font-size:16px;flex-shrink:0;}
 .imgs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px;}
 .imgs img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;border:1px solid var(--line);}
 .addimg{aspect-ratio:1;border:1px dashed var(--line);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--dim);font-size:13px;gap:4px;}
+
+/* ===== 力量 / 分析 ===== */
+.tabs button{font-size:12px;padding:11px 2px;}
+.lift{border-top:1px solid var(--line);padding:11px 2px;}
+.lift:first-of-type{border-top:none;}
+.lift .top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;}
+.lift .lname{font-size:15px;font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.lift .now{font-size:20px;font-weight:800;color:var(--txt);white-space:nowrap;}
+.lift .meta{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--dim);margin-top:3px;align-items:center;}
+.mtags{display:flex;gap:4px;flex-wrap:wrap;}
+.mtag{font-size:10px;padding:2px 7px;border-radius:99px;background:var(--card2);border:1px solid var(--line);color:var(--dim);}
+.spark{width:100%;height:34px;display:block;margin-top:6px;}
+.deltaUp{color:var(--good);} .deltaDn{color:var(--bad);} .deltaEq{color:var(--dim);}
+.tprog{height:5px;background:var(--card2);border-radius:3px;margin-top:6px;overflow:hidden;}
+.tprog i{display:block;height:100%;background:var(--warn);border-radius:3px;}
+.seg{display:flex;background:var(--card2);border:1px solid var(--line);border-radius:99px;padding:3px;gap:3px;margin:10px 0;}
+.seg button{flex:1;background:none;border:none;color:var(--dim);border-radius:99px;padding:7px 4px;font-size:13px;font-family:inherit;}
+.seg button.on{background:var(--acc);color:#fff;font-weight:700;}
+.mrow{display:flex;align-items:center;gap:8px;margin:7px 0;font-size:13px;}
+.mrow .mn{width:46px;color:var(--dim);flex-shrink:0;}
+.mrow .mb{flex:1;height:16px;background:var(--card2);border-radius:4px;overflow:hidden;position:relative;display:flex;}
+.mrow .mb i{display:block;height:100%;border-radius:4px 0 0 4px;}
+.mrow .mb u{display:block;height:100%;background:#3a4763;opacity:.55;text-decoration:none;}
+.mrow .mv{width:62px;text-align:right;color:var(--dim);font-size:11px;flex-shrink:0;}
+.warnbox{border-radius:10px;padding:9px 11px;font-size:13px;margin:7px 0;line-height:1.5;border:1px solid;}
+.warnbox.bad{background:#3a1f22;border-color:#6b2f34;color:#ffb9b9;}
+.warnbox.warn{background:#3a3020;border-color:#6b5528;color:#ffd9a0;}
+.warnbox.ok{background:#1d3326;border-color:#2c5c3c;color:#a8e6c0;}
+.modbar{display:flex;height:24px;border-radius:6px;overflow:hidden;margin-top:8px;background:var(--card2);}
+.modbar span{display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#0f1420;}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--dim);margin-top:7px;}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px;vertical-align:baseline;}
+.exrow{display:flex;gap:6px;align-items:center;padding:7px 0;border-top:1px solid var(--line);font-size:14px;}
+.exrow .en{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.exrow .ev{color:var(--dim);font-size:13px;white-space:nowrap;}
+.exrow .del{background:none;border:none;color:var(--bad);font-size:15px;padding:2px 4px;}
+.mini{font-size:12px;padding:6px 11px;border-radius:8px;background:var(--card2);border:1px solid var(--line);color:var(--txt);font-family:inherit;}
+.mini.pri{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:700;}
+.btnrow{display:flex;gap:8px;margin-top:10px;}
+.btnrow button{flex:1;}
+#ocrLog{font-size:12px;color:var(--dim);white-space:pre-wrap;max-height:120px;overflow:auto;margin-top:8px;line-height:1.5;}
+.srch{width:100%;margin:6px 0 2px;}
+.hm{width:100%;height:auto;display:block;margin-top:6px;}
+.hm .reg{stroke:var(--line);stroke-width:1.2;}
+.hm text{fill:var(--dim);font-size:9px;font-family:-apple-system,sans-serif;}
+.empty{color:var(--dim);font-size:13px;text-align:center;padding:18px 8px;line-height:1.6;}
+.kv{display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-top:1px solid var(--line);}
+.kv b{font-weight:700;}
 </style>
 </head>
 <body>
@@ -84,12 +136,14 @@ select,input[type=number],input[type=text]{background:var(--card2);border:1px so
 </header>
 
 <div class="page on" id="pg-today"></div>
+<div class="page" id="pg-lift"></div>
 <div class="page" id="pg-prog"></div>
 <div class="page" id="pg-assess"></div>
 <div class="page" id="pg-level"></div>
 
 <div class="tabs">
 <button class="on" data-pg="today">✅ 今日</button>
+<button data-pg="lift">🏋️ 力量</button>
 <button data-pg="prog">📈 進度</button>
 <button data-pg="assess">📋 評估</button>
 <button data-pg="level">🏆 等級</button>
@@ -105,6 +159,12 @@ select,input[type=number],input[type=text]{background:var(--card2);border:1px so
 <div class="goal" style="margin-top:12px">📷 示範相片（撳相可刪除）</div>
 <div class="imgs" id="mImgs"></div>
 <div class="note">相片存喺電話入面（唔包括喺JSON備份）。</div>
+</div>
+
+<div id="ovl2"></div>
+<div id="sheet2">
+<h3><span id="s2Title"></span><button id="s2Close">✕</button></h3>
+<div id="s2Body"></div>
 </div>
 
 <script>
@@ -534,6 +594,993 @@ function renderLevel(){
   <div class="hist">5️⃣ 足部穩定 — 落地與力線</div>
   <div class="note">堅持 8–12 星期，目標唔係淨係醫好今次 ECU，而係可以穩定加訓練量，唔使隔幾個月又因 overload 停練。</div></div>`));
 }
+
+/* ============================================================
+   CrossFit 力量 / 部位分析 引擎
+   ============================================================ */
+
+/* ---------- 肌群 / 模式 / Modality ---------- */
+const MUS = {shoulders:"肩",chest:"胸",back:"背",arms:"手臂",forearms:"前臂",core:"核心",glutes:"臀",legs:"腿",cardio:"心肺"};
+const MUS_ORDER = ["shoulders","chest","back","arms","forearms","core","glutes","legs","cardio"];
+const PAT = {push:"推",pull:"拉",squat:"蹲",hinge:"髖鉸",carry:"負重行",core:"核心",cardio:"心肺",oly:"舉重全身"};
+const MOD = {W:"舉重",G:"體操",M:"Metcon"};
+
+/* ---------- 動作庫 ----------
+   m  = 肌群權重（合計1）
+   pat= 動作模式
+   mod= W 舉重 / G 體操 / M metcon
+   bw = 體重負荷倍數（0 = 純外部負重；>0 = 體重動作）
+   cardio = true 代表用 cal / 米 計
+   a  = OCR/文字配對別名（全部小寫）
+------------------------------------------------ */
+const LIB = [
+/* --- 下肢 蹲 --- */
+{id:"backsquat",n:"Back Squat",a:["back squat","backsquat","bk squat"],m:{legs:.55,glutes:.30,core:.15},pat:"squat",mod:"W",bw:0},
+{id:"frontsquat",n:"Front Squat",a:["front squat","frontsquat"],m:{legs:.50,glutes:.22,core:.20,shoulders:.08},pat:"squat",mod:"W",bw:0},
+{id:"ohsquat",n:"Overhead Squat",a:["overhead squat","ohs","oh squat"],m:{legs:.40,shoulders:.25,core:.25,glutes:.10},pat:"squat",mod:"W",bw:0},
+{id:"airsquat",n:"Air Squat",a:["air squat","airsquat","bodyweight squat"],m:{legs:.6,glutes:.4},pat:"squat",mod:"G",bw:.5},
+{id:"pistol",n:"Pistol Squat",a:["pistol","pistols","single leg squat"],m:{legs:.55,glutes:.30,core:.15},pat:"squat",mod:"G",bw:.85},
+{id:"lunge",n:"Lunge",a:["lunge","lunges","walking lunge","reverse lunge","front rack lunge"],m:{legs:.50,glutes:.38,core:.12},pat:"squat",mod:"W",bw:.6},
+{id:"bulgarian",n:"Bulgarian Split Squat",a:["bulgarian split squat","bulgarian","split squat"],m:{legs:.45,glutes:.45,core:.10},pat:"squat",mod:"W",bw:.7},
+{id:"stepup",n:"Step-up",a:["step up","step-up","stepup","box step up"],m:{legs:.5,glutes:.4,core:.1},pat:"squat",mod:"W",bw:.7},
+{id:"legpress",n:"Leg Press",a:["leg press","legpress"],m:{legs:.7,glutes:.3},pat:"squat",mod:"W",bw:0},
+{id:"tibraise",n:"Tibialis Raise",a:["tibialis raise","tib raise"],m:{legs:1},pat:"squat",mod:"G",bw:.15},
+
+/* --- 下肢 髖鉸 --- */
+{id:"deadlift",n:"Deadlift",a:["deadlift","dead lift","dl","conventional deadlift"],m:{back:.35,glutes:.35,legs:.22,forearms:.08},pat:"hinge",mod:"W",bw:0},
+{id:"sumodl",n:"Sumo Deadlift",a:["sumo deadlift","sumo dl"],m:{glutes:.4,legs:.28,back:.24,forearms:.08},pat:"hinge",mod:"W",bw:0},
+{id:"rdl",n:"Romanian Deadlift",a:["romanian deadlift","rdl","stiff leg deadlift","sldl","single-leg rdl","single leg rdl"],m:{glutes:.45,back:.28,legs:.20,forearms:.07},pat:"hinge",mod:"W",bw:0},
+{id:"sdhp",n:"Sumo Deadlift High Pull",a:["sumo deadlift high pull","sdhp"],m:{glutes:.28,back:.25,shoulders:.22,legs:.17,forearms:.08},pat:"hinge",mod:"W",bw:0},
+{id:"kbswing",n:"KB Swing",a:["kb swing","kettlebell swing","american swing","russian swing","kbs"],m:{glutes:.45,back:.25,shoulders:.15,core:.10,forearms:.05},pat:"hinge",mod:"W",bw:0},
+{id:"goodmorning",n:"Good Morning",a:["good morning","goodmorning"],m:{glutes:.4,back:.38,legs:.22},pat:"hinge",mod:"W",bw:0},
+{id:"hipthrust",n:"Hip Thrust",a:["hip thrust","glute bridge","single-leg glute bridge","single leg glute bridge"],m:{glutes:.75,legs:.15,core:.10},pat:"hinge",mod:"W",bw:0},
+{id:"ghd",n:"GHD / Back Extension",a:["ghd","ghd sit up","ghd situp","back extension","hip extension"],m:{back:.45,glutes:.35,core:.20},pat:"hinge",mod:"G",bw:.55},
+
+/* --- 舉重 Olympic --- */
+{id:"clean",n:"Clean",a:["squat clean","full clean","clean"],m:{legs:.28,glutes:.24,back:.24,shoulders:.14,forearms:.10},pat:"oly",mod:"W",bw:0},
+{id:"powerclean",n:"Power Clean",a:["power clean","hang power clean","hang clean"],m:{legs:.26,back:.26,glutes:.22,shoulders:.16,forearms:.10},pat:"oly",mod:"W",bw:0},
+{id:"cleanjerk",n:"Clean & Jerk",a:["clean and jerk","clean & jerk","c&j","clean+jerk","cnj"],m:{legs:.24,shoulders:.24,back:.20,glutes:.20,forearms:.12},pat:"oly",mod:"W",bw:0},
+{id:"snatch",n:"Snatch",a:["squat snatch","full snatch","snatch"],m:{shoulders:.26,back:.24,legs:.22,glutes:.18,forearms:.10},pat:"oly",mod:"W",bw:0},
+{id:"powersnatch",n:"Power Snatch",a:["power snatch","hang power snatch","hang snatch"],m:{shoulders:.28,back:.24,legs:.20,glutes:.18,forearms:.10},pat:"oly",mod:"W",bw:0},
+{id:"thruster",n:"Thruster",a:["thruster","thrusters"],m:{legs:.35,shoulders:.32,glutes:.18,core:.15},pat:"oly",mod:"W",bw:0},
+{id:"wallball",n:"Wall Ball",a:["wall ball","wallball","wall balls","wb"],m:{legs:.34,shoulders:.32,glutes:.18,core:.16},pat:"oly",mod:"M",bw:0},
+{id:"cleanpull",n:"Clean Pull / High Pull",a:["clean pull","snatch pull","high pull"],m:{back:.4,glutes:.25,legs:.20,forearms:.15},pat:"hinge",mod:"W",bw:0},
+
+/* --- 上肢 推 --- */
+{id:"bench",n:"BB Bench Press",a:["bb bench press","barbell bench press","bench press","bench","flat bench"],m:{chest:.55,shoulders:.22,arms:.23},pat:"push",mod:"W",bw:0},
+{id:"inclbench",n:"Incline Bench Press",a:["incline bench press","incline bench","incline press"],m:{chest:.45,shoulders:.33,arms:.22},pat:"push",mod:"W",bw:0},
+{id:"dbbench",n:"DB Bench Press",a:["db bench press","dumbbell bench press","db bench","db press","dumbbell press"],m:{chest:.52,shoulders:.24,arms:.24},pat:"push",mod:"W",bw:0},
+{id:"strictpress",n:"Strict Press",a:["strict press","shoulder press","overhead press","ohp","military press","press"],m:{shoulders:.55,arms:.28,core:.17},pat:"push",mod:"W",bw:0},
+{id:"pushpress",n:"Push Press",a:["push press"],m:{shoulders:.45,legs:.20,arms:.20,core:.15},pat:"push",mod:"W",bw:0},
+{id:"jerk",n:"Push Jerk / Split Jerk",a:["push jerk","split jerk","jerk"],m:{shoulders:.42,legs:.24,arms:.19,core:.15},pat:"push",mod:"W",bw:0},
+{id:"pushup",n:"Push-up",a:["push up","push-up","pushup","pushups","hand release push up","hrpu"],m:{chest:.5,shoulders:.22,arms:.20,core:.08},pat:"push",mod:"G",bw:.64},
+{id:"dip",n:"Dip / Ring Dip",a:["ring dip","bar dip","dips","dip"],m:{chest:.38,arms:.32,shoulders:.22,core:.08},pat:"push",mod:"G",bw:1},
+{id:"hspu",n:"HSPU",a:["handstand push up","handstand push-up","hspu","strict hspu"],m:{shoulders:.5,arms:.3,core:.2},pat:"push",mod:"G",bw:.9},
+{id:"hswalk",n:"Handstand Walk",a:["handstand walk","hs walk","handstand hold"],m:{shoulders:.55,core:.25,arms:.20},pat:"push",mod:"G",bw:.9},
+{id:"tricep",n:"Tricep Extension",a:["tricep extension","triceps extension","skull crusher","tricep pushdown"],m:{arms:.9,shoulders:.1},pat:"push",mod:"W",bw:0},
+
+/* --- 上肢 拉 --- */
+{id:"pullup",n:"Pull-up",a:["strict pull up","strict pull-up","kipping pull up","butterfly pull up","pull up","pull-up","pullup","pullups"],m:{back:.55,arms:.25,forearms:.12,core:.08},pat:"pull",mod:"G",bw:1},
+{id:"c2b",n:"Chest-to-Bar",a:["chest to bar","chest-to-bar","c2b","ctb"],m:{back:.55,arms:.25,forearms:.12,core:.08},pat:"pull",mod:"G",bw:1.05},
+{id:"chinup",n:"Chin-up",a:["chin up","chin-up","chinup"],m:{back:.45,arms:.38,forearms:.12,core:.05},pat:"pull",mod:"G",bw:1},
+{id:"mu",n:"Muscle-up",a:["ring muscle up","bar muscle up","muscle up","muscle-up","mu"],m:{back:.38,arms:.28,shoulders:.18,forearms:.10,core:.06},pat:"pull",mod:"G",bw:1.15},
+{id:"bbrow",n:"Barbell Row",a:["barbell row","bent over row","pendlay row","bb row"],m:{back:.6,arms:.22,forearms:.10,shoulders:.08},pat:"pull",mod:"W",bw:0},
+{id:"dbrow",n:"DB Row",a:["db row","dumbbell row","single arm row","one arm row","seated row","cable row","ring row"],m:{back:.6,arms:.22,forearms:.10,shoulders:.08},pat:"pull",mod:"W",bw:0},
+{id:"latpull",n:"Lat Pulldown",a:["lat pulldown","lat pull down","pulldown"],m:{back:.62,arms:.24,forearms:.14},pat:"pull",mod:"W",bw:0},
+{id:"facepull",n:"Face Pull",a:["face pull","facepull","band pull apart","band w","prone y","prone t"],m:{shoulders:.55,back:.35,arms:.10},pat:"pull",mod:"W",bw:0},
+{id:"scappull",n:"Scapular Pull-up",a:["scapular pull up","scap pull up","scap pull-up","scapular pull-up"],m:{back:.65,shoulders:.20,forearms:.15},pat:"pull",mod:"G",bw:.35},
+{id:"deadhang",n:"Dead Hang",a:["dead hang","deadhang","bar hang","hang"],m:{forearms:.5,back:.3,shoulders:.2},pat:"pull",mod:"G",bw:.45},
+{id:"curl",n:"Bicep Curl",a:["bicep curl","biceps curl","barbell curl","db curl","hammer curl","curl"],m:{arms:.85,forearms:.15},pat:"pull",mod:"W",bw:0},
+
+/* --- 肩 / 復健 --- */
+{id:"bander",n:"Band External Rotation",a:["band external rotation","band er","side lying er","external rotation","side-lying er"],m:{shoulders:.85,arms:.15},pat:"pull",mod:"W",bw:0},
+{id:"serratus",n:"Serratus Wall Slide / Punch",a:["serratus wall slide","serratus punch","wall slide","serratus"],m:{shoulders:.7,core:.2,back:.1},pat:"push",mod:"G",bw:.2},
+{id:"latraise",n:"Lateral Raise",a:["lateral raise","side raise","front raise","db raise"],m:{shoulders:.9,arms:.1},pat:"push",mod:"W",bw:0},
+{id:"tgu",n:"Turkish Get-up",a:["turkish get up","turkish get-up","tgu","get up"],m:{shoulders:.35,core:.3,legs:.2,glutes:.15},pat:"carry",mod:"W",bw:0},
+
+/* --- 前臂 --- */
+{id:"wristext",n:"Wrist Extension Eccentric",a:["wrist extension","wrist curl","ecu isometric","forearm rotation","pronation","supination","finger extension","rice bucket"],m:{forearms:1},pat:"carry",mod:"W",bw:0},
+{id:"farmer",n:"Farmer Carry",a:["farmer carry","farmers carry","farmer's carry","offset carry","suitcase carry","bottom-up carry","bottom up carry","overhead carry","carry"],m:{forearms:.4,core:.28,back:.20,shoulders:.12},pat:"carry",mod:"W",bw:0},
+
+/* --- 核心 --- */
+{id:"t2b",n:"Toes to Bar",a:["toes to bar","toes-to-bar","t2b","ttb","knees to elbow","k2e"],m:{core:.6,back:.2,forearms:.12,arms:.08},pat:"core",mod:"G",bw:.5},
+{id:"situp",n:"Sit-up",a:["sit up","sit-up","situp","situps","ab mat sit up","v-up","v up"],m:{core:1},pat:"core",mod:"G",bw:.4},
+{id:"plank",n:"Plank",a:["plank","copenhagen plank","side plank","hollow hold","hollow rock"],m:{core:.8,shoulders:.12,glutes:.08},pat:"core",mod:"G",bw:.5},
+{id:"monster",n:"Monster Walk",a:["monster walk","banded walk","lateral band walk","short foot"],m:{glutes:.8,legs:.2},pat:"carry",mod:"G",bw:.25},
+
+/* --- Metcon / 心肺 --- */
+{id:"row",n:"Row (C2)",a:["rower","row erg","c2 row","concept2 row","rowing","row"],m:{cardio:.55,back:.20,legs:.15,arms:.10},pat:"cardio",mod:"M",bw:0,cardio:true},
+{id:"ski",n:"Ski Erg",a:["ski erg","skierg","ski"],m:{cardio:.55,back:.20,core:.15,arms:.10},pat:"cardio",mod:"M",bw:0,cardio:true},
+{id:"bike",n:"Bike / Echo Bike",a:["assault bike","echo bike","air bike","bike erg","bike","cycling"],m:{cardio:.65,legs:.25,shoulders:.10},pat:"cardio",mod:"M",bw:0,cardio:true},
+{id:"run",n:"Run",a:["run","running","jog"],m:{cardio:.7,legs:.30},pat:"cardio",mod:"M",bw:0,cardio:true},
+{id:"doubleunder",n:"Double Under",a:["double under","double-under","du","dus","single under","jump rope"],m:{cardio:.6,legs:.28,forearms:.12},pat:"cardio",mod:"M",bw:0,cardio:true},
+{id:"burpee",n:"Burpee",a:["burpee","burpees","bar facing burpee","burpee box jump"],m:{cardio:.4,chest:.20,legs:.20,core:.12,shoulders:.08},pat:"cardio",mod:"M",bw:.7},
+{id:"boxjump",n:"Box Jump",a:["box jump","box jumps","bj","box jump over"],m:{legs:.5,glutes:.35,cardio:.15},pat:"squat",mod:"M",bw:1},
+{id:"sled",n:"Sled Push / Pull",a:["sled push","sled pull","sled drag","prowler","sled"],m:{legs:.4,glutes:.3,cardio:.2,core:.1},pat:"carry",mod:"M",bw:0},
+{id:"foamroll",n:"Foam Roller / Mobility",a:["foam roller","foam roll","thoracic extension","open book","mobility"],m:{back:.6,shoulders:.4},pat:"core",mod:"G",bw:.1}
+];
+
+const BY_ID = {}; LIB.forEach(x=>BY_ID[x.id]=x);
+/* 別名 → id，長嘅先配（避免 "clean" 食咗 "power clean"） */
+const ALIAS = [];
+LIB.forEach(mv=>mv.a.forEach(al=>ALIAS.push([al,mv.id])));
+ALIAS.sort((a,b)=>b[0].length-a[0].length);
+
+/* ---------- 單位 ---------- */
+const LB2KG = 0.45359237;
+function toKg(w,u){ return u==="kg" ? +w : +w*LB2KG; }
+function fromKg(kg,u){ return u==="kg" ? kg : kg/LB2KG; }
+function fmtW(w,u){ const n=+w; return (Math.abs(n-Math.round(n))<0.05 ? Math.round(n) : n.toFixed(1)) + " " + u; }
+
+/* ---------- 文字解析 ---------- */
+function normLine(s){
+ return String(s).toLowerCase()
+  .replace(/[×✕╳]/g,"x")
+  .replace(/[’‘`]/g,"'")
+  .replace(/[|_•·▪●–—]/g," ")
+  /* 中文單位 → 英文 */
+  .replace(/組|set組/g," sets ").replace(/[次下]/g," reps ").replace(/回合|輪/g," rounds ")
+  .replace(/公斤|千克/g,"kg").replace(/磅/g,"lb").replace(/秒/g," sec ").replace(/分鐘|分/g," min ")
+  .replace(/公尺|米/g,"m").replace(/卡路里|卡/g," cal ")
+  .replace(/\s+/g," ").trim();
+}
+const RE_CACHE = {};
+function aliasRe(al){
+ if(!RE_CACHE[al]) RE_CACHE[al] = new RegExp(
+  "(^|[^a-z])" + al.replace(/[.*+?^${}()|[\]\\]/g,"\\$&").replace(/\s+/g,"[\\s\\-]*") + "(?:e?s)?(?![a-z])");
+ return RE_CACHE[al];
+}
+function findMove(line){
+ const L = normLine(line);
+ for(const [al,id] of ALIAS) if(aliasRe(al).test(L)) return {id, alias:al};
+ return null;
+}
+function schemeOf(str){
+ const m = String(str).match(/(\d{1,3}(?:\s*-\s*\d{1,3}){1,7})/);
+ if(!m) return null;
+ const parts = m[1].split(/\s*-\s*/).map(Number);
+ if(parts.length<2 || parts.some(x=>!(x>0&&x<=200))) return null;
+ return parts;
+}
+/* 由一行文字抽 重量 / 組 / 次。搵到動作但無數字 → r 留 null，交返俾 parseWorkout 用上下文補 */
+function parseLine(raw){
+ const line = normLine(raw);
+ if(line.length < 2) return null;
+ const hit = findMove(line);
+ if(!hit) return null;
+ const mv = BY_ID[hit.id];
+ /* 移除動作名，避免名入面嘅數字（例 "c2b"）被當成次數 */
+ const nums = line.replace(aliasRe(hit.alias)," ");
+
+ let unit = null, weight = null, sets = null, reps = null, scheme = null, dist = null, cal = null, secs = null;
+
+ /* 明確單位重量：135 lb / 60kg / 135# / 135lbs / @135 */
+ let m = nums.match(/(\d+(?:\.\d+)?)\s*(lbs?|kgs?|kilos?|#)(?![a-z])/);
+ if(m){ weight = +m[1]; unit = /^k/.test(m[2]) ? "kg" : "lbs"; }
+ if(weight==null){ m = nums.match(/@\s*(\d+(?:\.\d+)?)/); if(m) weight = +m[1]; }
+
+ /* 距離 / 卡路里 / 時間 */
+ m = nums.match(/(\d+(?:\.\d+)?)\s*(km|m|meters?|metres?|miles?|mi)(?![a-z])/);
+ if(m) dist = +m[1] * (m[2]==="km"?1000 : /^mi/.test(m[2])?1609 : 1);
+ m = nums.match(/(\d+)\s*(cals?|calories?)(?![a-z])/); if(m) cal = +m[1];
+ m = nums.match(/(\d+)\s*(secs?|seconds?|s)(?![a-z])/); if(m) secs = +m[1];
+ m = nums.match(/(\d+)\s*(mins?|minutes?)(?![a-z])/); if(m) secs = (secs||0) + (+m[1])*60;
+
+ /* 21-15-9 類 rep scheme（要排除 "135-155" 咁嘅重量遞增） */
+ const sc = schemeOf(nums.replace(/(\d+)\s*(lbs?|kgs?|#)/g," "));
+ if(sc && !(sc.length===2 && Math.min(...sc)>60)){
+  scheme = sc; sets = sc.length; reps = Math.round(sc.reduce((a,b)=>a+b,0)/sc.length);
+ }
+
+ /* AxB 形式 */
+ if(sets==null || reps==null){
+  for(const g of nums.matchAll(/(\d{1,3}(?:\.\d+)?)\s*x\s*(\d{1,3}(?:\.\d+)?)/g)){
+   const A = +g[1], B = +g[2];
+   if(A > 60 && B <= 30 && weight==null){ weight = A; reps = B; sets = sets||1; }      /* 225x5 */
+   else if(A <= 20 && B <= 100){ sets = A; reps = B; }                                  /* 5x5 */
+   else if(A <= 30 && B > 60 && weight==null){ reps = A; weight = B; sets = sets||1; }   /* 5x225 */
+  }
+ }
+ /* "4 sets of 6" / "3 sets" / "10 reps" / "5 rounds" */
+ m = nums.match(/(\d{1,2})\s*(?:sets?|rounds?)\s*(?:of|x)?\s*(\d{1,3})?/);
+ if(m){ if(sets==null) sets = +m[1]; if(reps==null && m[2]) reps = +m[2]; }
+ if(reps==null){ m = nums.match(/(\d{1,3})\s*reps?(?![a-z])/); if(m) reps = +m[1]; }
+ /* CrossFit 式「15 Wall Balls 20#」/「Even: 3 Power Snatch 70kg」→ 名前數字 = 次數 */
+ if(reps==null && dist==null && cal==null && secs==null){
+  m = line.match(/(?:^|[:.)\-]\s*)(\d{1,3})\s+[a-z]/);
+  if(m && +m[1] !== weight) reps = +m[1];
+ }
+ /* 淨得一個數 */
+ if(reps==null && sets==null && weight==null && !dist && !cal && !secs){
+  const only = nums.match(/\d{1,3}/g);
+  if(only && only.length===1 && +only[0] <= 200){ reps = +only[0]; sets = 1; }
+ }
+ /* 無單位嘅剩餘大數 = 重量（例「Bench 5-5-5 155」） */
+ if(weight==null && !mv.cardio && !mv.bw && reps!=null){
+  const used = new Set([reps,sets,dist,cal,secs].filter(x=>x!=null).map(Number));
+  (scheme||[]).forEach(x=>used.add(x));
+  const cand = (nums.match(/\d+(?:\.\d+)?/g)||[]).map(Number)
+   .filter(x=>x>=40 && x<=800 && !used.has(x));
+  if(cand.length) weight = Math.max(...cand);
+ }
+
+ return {
+  ex: mv.id, name: mv.n,
+  w: weight, u: unit || (weight!=null ? "AUTO" : null),
+  s: sets, r: reps,
+  scheme, dist, cal, secs, raw: String(raw).trim()
+ };
+}
+/* 淨係得 rep scheme / rounds 嘅一行（做下面幾個動作嘅共同處方） */
+function contextOf(raw){
+ const line = normLine(raw);
+ if(findMove(line)) return null;
+ const sc = schemeOf(line);
+ if(sc && Math.min.apply(null,sc) < 45 && /^[\s\d\-x×+]*(?:reps?|rounds?|for time|rft|)?[\s\d\-]*$/.test(line.replace(/\d+\s*-\s*/g,"").replace(/\d+/g,""))) return {scheme:sc, sets:sc.length, reps:Math.round(sc.reduce((a,b)=>a+b,0)/sc.length)};
+ let m = line.match(/^(\d{1,2})\s*(?:rounds?|rft|sets?)\b/);
+ if(m) return {sets:+m[1]};
+ m = line.match(/^(\d{1,2})\s*x\s*$/); if(m) return {sets:+m[1]};
+ return null;
+}
+function parseWorkout(text, defUnit){
+ const out = [];
+ let ctx = null;
+ String(text).split(/[\n\r;]+/).forEach(ln=>{
+  if(!ln || !ln.trim()) { return; }
+  const c = contextOf(ln);
+  if(c){ ctx = c; return; }
+  const p = parseLine(ln);
+  if(!p) return;
+  const mv = BY_ID[p.ex];
+  if(ctx){
+   if(p.r==null && ctx.reps!=null){ p.r = ctx.reps; p.scheme = ctx.scheme||null; }
+   if(p.s==null) p.s = ctx.sets || 1;
+  }
+  if(p.s==null) p.s = 1;
+  if(p.u==="AUTO") p.u = defUnit;
+  if(p.secs!=null && p.r===p.secs) p.r = null;   /* "4x30 sec" → 30 係秒唔係次 */
+  if(mv.cardio){ if(!p.dist && !p.cal && !p.secs && !p.r) return; }
+  else if(p.r==null && p.secs==null) return;
+  out.push(p);
+ });
+ const seen = new Set();
+ return out.filter(p=>{ const k=[p.ex,p.w,p.s,p.r,p.dist,p.cal,p.secs].join("|"); if(seen.has(k))return false; seen.add(k); return true; });
+}
+
+/* ---------- 負荷計算 ---------- */
+/* 一條記錄 → 總 tonnage（kg） */
+function entryLoadKg(e, bwKg){
+ const mv = BY_ID[e.ex]; if(!mv) return 0;
+ if(mv.cardio){
+  const cal = e.cal || 0, dist = e.dist || 0, secs = e.secs || 0;
+  const one = cal*8 + dist*0.4 + secs*2.5 + (e.r&&!cal&&!dist&&!secs ? e.r*2 : 0);
+  return one * (e.s || 1);
+ }
+ const ext = e.w!=null ? toKg(e.w, e.u||"lbs") : 0;
+ const load = (mv.bw ? bwKg*mv.bw : 0) + ext;
+ const sets = e.s || 1;
+ const reps = e.scheme ? e.scheme.reduce((a,b)=>a+b,0) : (e.r||0)*sets;
+ /* 等長/負重行：每 10 秒當 1 下 */
+ const isoReps = e.secs ? (e.secs/10)*sets : 0;
+ return (load||bwKg*.3) * (reps + isoReps);
+}
+/* 期間 → 每肌群 tonnage + 模式 + modality */
+function analyze(entries, bwKg){
+ const mus = {}, pat = {}, mod = {}, sets = {};
+ MUS_ORDER.forEach(k=>mus[k]=0);
+ entries.forEach(e=>{
+  const mv = BY_ID[e.ex]; if(!mv) return;
+  const L = entryLoadKg(e, bwKg);
+  for(const k in mv.m) mus[k] = (mus[k]||0) + L*mv.m[k];
+  pat[mv.pat] = (pat[mv.pat]||0) + L;
+  mod[mv.mod] = (mod[mv.mod]||0) + (e.s||1);
+  sets[mv.id] = (sets[mv.id]||0) + (e.s||1);
+ });
+ const total = Object.values(mus).reduce((a,b)=>a+b,0);
+ return {mus, pat, mod, sets, total};
+}
+
+/* ============================================================
+   力量頁 / Cap圖匯入 / 部位分析  UI
+   ============================================================ */
+
+/* ---------- 預設值 ---------- */
+if(!DB.bw) DB.bw = {v:70,u:"kg"};
+if(!DB.unit) DB.unit = "lbs";
+if(!DB.targets) DB.targets = {};
+
+function BWKG(){ return toKg(DB.bw.v||70, DB.bw.u||"kg"); }
+function liftsOf(k){ const d=day(k); if(!d.lifts) d.lifts=[]; return d.lifts; }
+function allLifts(){
+ const out=[];
+ Object.keys(DB.days).sort().forEach(k=>{ (DB.days[k].lifts||[]).forEach(e=>out.push(Object.assign({date:k},e))); });
+ return out;
+}
+function liftsInDays(keys){
+ const set=new Set(keys), out=[];
+ set.forEach(k=>{ (DB.days[k]&&DB.days[k].lifts||[]).forEach(e=>out.push(Object.assign({date:k},e))); });
+ return out;
+}
+function daysBack(n, off){
+ off = off||0;
+ const arr=[], d=new Date(today); d.setDate(d.getDate()-off);
+ for(let i=0;i<n;i++){ arr.push(dkey(d)); d.setDate(d.getDate()-1); }
+ return arr;
+}
+/* 顯示用重量（轉做 DB.unit） */
+function dispW(e){ return e.w==null ? null : fromKg(toKg(e.w, e.u||"lbs"), DB.unit); }
+function tonneTxt(kg){
+ if(kg>=1000) return (kg/1000).toFixed(kg>=10000?0:1)+"t";
+ return Math.round(kg)+"kg";
+}
+function entryTxt(e){
+ const mv = BY_ID[e.ex]||{};
+ if(mv.cardio){
+  const bits=[]; if(e.dist) bits.push(e.dist>=1000?(e.dist/1000)+"km":e.dist+"m");
+  if(e.cal) bits.push(e.cal+" cal"); if(e.secs) bits.push(Math.round(e.secs/60*10)/10+" min");
+  if(e.r) bits.push(e.r+" 下");
+  return (e.s>1?e.s+"× ":"") + (bits.join(" · ")||"—");
+ }
+ const w = dispW(e);
+ const rep = e.scheme ? e.scheme.join("-") : (e.r!=null ? e.r : (e.secs?e.secs+"s":"—"));
+ const sr = e.scheme ? rep : (e.s||1)+"組 × "+rep+(e.secs&&e.r==null?"":" 下");
+ return (w!=null ? fmtW(w, DB.unit)+" · " : "") + sr;
+}
+
+/* ---------- 第二層 sheet ---------- */
+const ovl2=document.getElementById("ovl2"), sheet2=document.getElementById("sheet2");
+function openS2(title, build){
+ document.getElementById("s2Title").textContent = title;
+ const b = document.getElementById("s2Body"); b.innerHTML="";
+ build(b);
+ ovl2.classList.add("on"); sheet2.classList.add("on");
+}
+function closeS2(){ ovl2.classList.remove("on"); sheet2.classList.remove("on"); }
+ovl2.onclick = closeS2;
+document.getElementById("s2Close").onclick = closeS2;
+
+/* ---------- 動作選單 ---------- */
+let MOVE_OPTS = "";
+(function(){
+ const groups = {W:[],G:[],M:[]};
+ LIB.forEach(m=>groups[m.mod].push(m));
+ MOVE_OPTS = ["W","G","M"].map(g=>
+  `<optgroup label="${MOD[g]}">` + groups[g].sort((a,b)=>a.n.localeCompare(b.n))
+   .map(m=>`<option value="${m.id}">${esc(m.n)}</option>`).join("") + `</optgroup>`).join("");
+})();
+
+/* ============================================================
+   Cap 圖 OCR
+   ============================================================ */
+function loadScript(src){
+ return new Promise((res,rej)=>{
+  const s=document.createElement("script"); s.src=src; s.async=true;
+  s.onload=res; s.onerror=()=>rej(new Error("load fail "+src));
+  document.head.appendChild(s);
+ });
+}
+let tessP = null;
+function loadTess(){
+ if(window.Tesseract) return Promise.resolve(window.Tesseract);
+ if(tessP) return tessP;
+ const urls = [
+  "https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js",
+  "https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.1.1/tesseract.min.js",
+  "https://unpkg.com/tesseract.js@5.1.1/dist/tesseract.min.js"
+ ];
+ tessP = urls.reduce((p,u)=>p.catch(()=>loadScript(u).then(()=>{ if(!window.Tesseract) throw new Error("no global"); return window.Tesseract; })),
+  Promise.reject()).catch(e=>{ tessP=null; throw e; });
+ return tessP;
+}
+/* 白板/螢幕相：放大 + 灰階 + 對比拉伸，OCR 準好多 */
+function prepImage(file){
+ return new Promise((res,rej)=>{
+  const rd=new FileReader();
+  rd.onerror=()=>rej(new Error("read fail"));
+  rd.onload=()=>{
+   const im=new Image();
+   im.onerror=()=>rej(new Error("img fail"));
+   im.onload=()=>{
+    const target = 1600;
+    const sc = Math.min(2.2, Math.max(1, target/Math.max(im.width,im.height)));
+    const cv=document.createElement("canvas");
+    cv.width=Math.round(im.width*sc); cv.height=Math.round(im.height*sc);
+    const cx=cv.getContext("2d");
+    cx.drawImage(im,0,0,cv.width,cv.height);
+    try{
+     const d=cx.getImageData(0,0,cv.width,cv.height), p=d.data;
+     let mn=255, mx=0;
+     for(let i=0;i<p.length;i+=4){ const g=(p[i]*.3+p[i+1]*.59+p[i+2]*.11); if(g<mn)mn=g; if(g>mx)mx=g; }
+     const rng = Math.max(1, mx-mn);
+     for(let i=0;i<p.length;i+=4){
+      let g=(p[i]*.3+p[i+1]*.59+p[i+2]*.11);
+      g=(g-mn)/rng*255;
+      g = g<110 ? g*0.55 : 40+g*0.85;      /* 拉開黑白 */
+      g = Math.max(0,Math.min(255,g));
+      p[i]=p[i+1]=p[i+2]=g;
+     }
+     cx.putImageData(d,0,0);
+    }catch(e){}
+    res({full: cv.toDataURL("image/jpeg",0.92), thumb: thumbOf(im)});
+   };
+   im.src=rd.result;
+  };
+  rd.readAsDataURL(file);
+ });
+}
+function thumbOf(im){
+ const s=Math.min(1,600/Math.max(im.width,im.height));
+ const c=document.createElement("canvas");
+ c.width=Math.round(im.width*s); c.height=Math.round(im.height*s);
+ c.getContext("2d").drawImage(im,0,0,c.width,c.height);
+ return c.toDataURL("image/jpeg",0.7);
+}
+
+/* ============================================================
+   匯入 / 覆核介面
+   ============================================================ */
+function shiftKey(n){ const d=new Date(today); d.setDate(d.getDate()-n); return dkey(d); }
+function openImport(dateKey, presetText, thumbData){
+ openS2("匯入訓練記錄", body=>{
+  let rows = [];
+  let curDate = dateKey || TKEY;
+
+  const src = el(`<div>
+   <div class="goal">① 邊日嘅記錄？</div>
+   <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+    <input type="date" id="impDate" value="${curDate}" max="${TKEY}" style="flex:1;min-width:150px">
+   </div>
+   <div class="chips" id="dQuick">
+    <button data-n="0">今日</button><button data-n="1">尋日</button>
+    <button data-n="2">前日</button><button data-n="3">3日前</button>
+   </div>
+   <div class="goal" style="margin-top:14px">② 上傳 cap 圖（自動OCR）或直接貼文字</div>
+   <div class="btnrow">
+    <label class="btn ghost" style="text-align:center;margin:0;cursor:pointer">📷 揀相 OCR<input type="file" accept="image/*" id="fCap" hidden></label>
+    <button class="btn ghost" style="margin:0" id="bDemo">🧪 用範例</button>
+   </div>
+   <div id="ocrLog"></div>
+   <div class="goal" style="margin-top:12px">③ 文字（可以直接改，改完撳「重新解析」）</div>
+   <textarea id="taRaw" style="min-height:120px" placeholder="例：
+Back Squat 5x5 @ 185 lb
+BB Bench Press 3x8 135lbs
+21-15-9
+Thrusters 95lb
+Pull-ups"></textarea>
+   <button class="btn ghost" id="bParse">🔍 重新解析</button>
+   <div class="goal" style="margin-top:6px">④ 覆核 / 修改，撳「加入記錄」</div>
+   <div id="rows"></div>
+   <button class="addbtn" id="bAddRow">＋ 手動加一行</button>
+   <div id="exist"></div>
+   <button class="btn" id="bSave"></button>
+  </div>`);
+  body.appendChild(src);
+
+  const log = src.querySelector("#ocrLog"), ta = src.querySelector("#taRaw"), rowsBox = src.querySelector("#rows");
+  const dIn = src.querySelector("#impDate"), bSave = src.querySelector("#bSave"), exist = src.querySelector("#exist");
+  if(presetText) ta.value = presetText;
+  let pendingThumb = thumbData || null;
+
+  function dLabel(k){
+   const n = Math.round((new Date(TKEY+"T12:00:00") - new Date(k+"T12:00:00"))/86400000);
+   return k + "（" + WD[new Date(k+"T12:00:00").getDay()] + "）" + (n===0?" · 今日":n===1?" · 尋日":n>0?" · "+n+"日前":"");
+  }
+  function syncDate(){
+   curDate = dIn.value || TKEY;
+   bSave.textContent = "💾 加入 " + dLabel(curDate) + " 記錄";
+   src.querySelectorAll("#dQuick button").forEach(b=>b.classList.toggle("on", shiftKey(+b.dataset.n)===curDate));
+   /* 顯示嗰日已經有嘅記錄，避免重複入 */
+   const L = (DB.days[curDate] && DB.days[curDate].lifts) || [];
+   exist.innerHTML = "";
+   if(L.length){
+    exist.appendChild(el(`<div class="goal" style="margin-top:12px">📌 ${curDate} 已經有 ${L.length} 個動作</div>`));
+    L.forEach(e=>{
+     const r = el(`<div class="exrow"><span class="en">${esc((BY_ID[e.ex]||{}).n||e.ex)}</span><span class="ev">${entryTxt(e)}</span><button class="del">🗑</button></div>`);
+     r.querySelector(".del").onclick = ()=>{
+      const i = L.findIndex(x=>x.id===e.id);
+      if(i>=0){ L.splice(i,1); save(); syncDate(); renderToday(); }
+     };
+     exist.appendChild(r);
+    });
+   }
+  }
+  dIn.onchange = syncDate;
+  src.querySelectorAll("#dQuick button").forEach(b=>{
+   b.onclick = ()=>{ dIn.value = shiftKey(+b.dataset.n); syncDate(); };
+  });
+  syncDate();
+
+  function drawRows(){
+   rowsBox.innerHTML = "";
+   if(!rows.length){ rowsBox.appendChild(el(`<div class="empty">未解析到動作。<br>可以手動加，或者改上面段文字再解析。</div>`)); return; }
+   rows.forEach((r,i)=>{
+    const mv = BY_ID[r.ex]||{};
+    const row = el(`<div style="border-top:1px solid var(--line);padding:9px 0">
+      <div style="display:flex;gap:6px;align-items:center">
+       <select style="flex:1;min-width:0">${MOVE_OPTS}</select>
+       <button class="del" style="background:none;border:none;color:var(--bad);font-size:17px">🗑</button>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;margin-top:6px;flex-wrap:wrap">
+       <input type="number" class="w" placeholder="重量" style="width:74px" value="${r.w??""}">
+       <select class="u" style="width:64px"><option value="lbs">lbs</option><option value="kg">kg</option></select>
+       <input type="number" class="s" placeholder="組" style="width:56px" value="${r.s??1}">
+       <span style="color:var(--dim)">×</span>
+       <input type="number" class="r" placeholder="次" style="width:56px" value="${r.r??""}">
+      </div>
+      ${mv.cardio?`<div style="display:flex;gap:6px;margin-top:6px">
+       <input type="number" class="d" placeholder="米" style="width:74px" value="${r.dist??""}">
+       <input type="number" class="c" placeholder="cal" style="width:64px" value="${r.cal??""}">
+       <input type="number" class="sec" placeholder="秒" style="width:64px" value="${r.secs??""}"></div>`:""}
+      ${r.raw?`<div class="note" style="margin-top:4px">📄 ${esc(r.raw)}</div>`:""}
+     </div>`);
+    const sel = row.querySelector("select"); sel.value = r.ex;
+    sel.onchange = ()=>{ r.ex = sel.value; r.name = (BY_ID[r.ex]||{}).n; drawRows(); };
+    row.querySelector(".u").value = r.u || DB.unit;
+    row.querySelector(".w").oninput = function(){ r.w = this.value===""?null:+this.value; };
+    row.querySelector(".u").onchange = function(){ r.u = this.value; };
+    row.querySelector(".s").oninput = function(){ r.s = this.value===""?1:+this.value; };
+    row.querySelector(".r").oninput = function(){ r.r = this.value===""?null:+this.value; r.scheme=null; };
+    if(mv.cardio){
+     row.querySelector(".d").oninput = function(){ r.dist = this.value===""?null:+this.value; };
+     row.querySelector(".c").oninput = function(){ r.cal = this.value===""?null:+this.value; };
+     row.querySelector(".sec").oninput = function(){ r.secs = this.value===""?null:+this.value; };
+    }
+    row.querySelector(".del").onclick = ()=>{ rows.splice(i,1); drawRows(); };
+    rowsBox.appendChild(row);
+   });
+  }
+  function reparse(){
+   rows = parseWorkout(ta.value, DB.unit);
+   drawRows();
+   log.textContent = rows.length ? "✅ 解析到 "+rows.length+" 個動作" : "⚠️ 認唔到動作，試下手動加";
+  }
+  if(presetText) reparse(); else drawRows();
+
+  src.querySelector("#bParse").onclick = reparse;
+  src.querySelector("#bDemo").onclick = ()=>{
+   ta.value = "Back Squat 5x5 @ 185 lb\nBB Bench Press 3x8 135lbs\n21-15-9\nThrusters 95lb\nPull-ups\n500m Row";
+   reparse();
+  };
+  src.querySelector("#bAddRow").onclick = ()=>{ rows.push({ex:"bench",name:"BB Bench Press",w:null,u:DB.unit,s:3,r:5}); drawRows(); };
+
+  src.querySelector("#fCap").onchange = function(){
+   const f = this.files && this.files[0]; this.value="";
+   if(!f) return;
+   log.textContent = "📷 處理相片…";
+   prepImage(f).then(({full,thumb})=>{
+    pendingThumb = thumb;
+    log.textContent = "⏳ 載入 OCR 引擎（首次要下載約 2–5MB，之後會 cache）…";
+    return loadTess().then(T=>{
+     log.textContent = "🔎 辨識中… 0%";
+     return T.recognize(full, "eng", {logger: p=>{
+      if(p.status==="recognizing text") log.textContent = "🔎 辨識中… "+Math.round(p.progress*100)+"%";
+      else log.textContent = "⏳ "+p.status;
+     }});
+    });
+   }).then(res=>{
+    const txt = (res && res.data && res.data.text || "").trim();
+    ta.value = (ta.value ? ta.value+"\n" : "") + txt;
+    reparse();
+    log.textContent = "✅ OCR 完成，解析到 "+rows.length+" 個動作。認錯咗就直接改上面段文字或下面每一行。";
+   }).catch(e=>{
+    log.textContent = "❌ OCR 用唔到（"+(e&&e.message||e)+"）。\n可能無網絡。你可以喺 CrossFit app 度 copy 段文字，貼落上面個框再撳「重新解析」。";
+   });
+  };
+
+  bSave.onclick = ()=>{
+   if(!rows.length){ alert("無嘢可以加"); return; }
+   const tgt = dIn.value || TKEY;
+   const L = liftsOf(tgt);
+   let n = 0;
+   rows.forEach(r=>{
+    const mv = BY_ID[r.ex]||{};
+    if(!mv.cardio && r.r==null && r.secs==null && !r.scheme) return;
+    L.push({id:uid(), ex:r.ex, w:(r.w===""||r.w==null)?null:+r.w, u:r.u||DB.unit,
+            s:+r.s||1, r:r.r==null?null:+r.r, scheme:r.scheme||null,
+            dist:r.dist||null, cal:r.cal||null, secs:r.secs||null, raw:r.raw||""});
+    n++;
+   });
+   if(pendingThumb){
+    const iid = uid();
+    imgPut(iid, pendingThumb).then(()=>{
+     const d=day(tgt); d.caps = d.caps||[]; d.caps.push(iid); save(true);
+    }).catch(()=>{});
+   }
+   save(); closeS2(); toast("✅ "+(tgt===TKEY?"":tgt+" ")+"加咗 "+n+" 個動作");
+   renderToday(); if(document.getElementById("pg-lift").classList.contains("on")) renderLift();
+  };
+ });
+}
+
+/* ============================================================
+   力量頁
+   ============================================================ */
+/* 一個動作嘅所有記錄（新→舊） */
+function historyOf(exId){
+ return allLifts().filter(e=>e.ex===exId).sort((a,b)=>a.date<b.date?1:a.date>b.date?-1:0);
+}
+/* 每次訓練嘅「working set」= 嗰日最重嗰組 */
+function sessionsOf(exId){
+ const byDate = {};
+ historyOf(exId).forEach(e=>{
+  const kg = e.w!=null ? toKg(e.w,e.u||"lbs") : -1;
+  const cur = byDate[e.date];
+  const score = kg>=0 ? kg : entryLoadKg(e, BWKG())/1000;
+  if(!cur || score > cur._score) byDate[e.date] = Object.assign({_score:score,_kg:kg}, e);
+ });
+ return Object.keys(byDate).sort().reverse().map(k=>byDate[k]);
+}
+function bestOf(exId){
+ let b=null;
+ historyOf(exId).forEach(e=>{ if(e.w==null) return; const kg=toKg(e.w,e.u||"lbs"); if(!b||kg>b.kg) b={kg,e}; });
+ return b;
+}
+function sparkSVG(vals){
+ if(vals.length<2) return "";
+ const mn=Math.min(...vals), mx=Math.max(...vals), rng=(mx-mn)||1, W=300, H=34, p=4;
+ const pts = vals.map((v,i)=>[p+(W-2*p)*i/(vals.length-1), H-p-(H-2*p)*(v-mn)/rng]);
+ const d = pts.map((q,i)=>(i?"L":"M")+q[0].toFixed(1)+" "+q[1].toFixed(1)).join(" ");
+ const up = vals[vals.length-1] >= vals[0];
+ const col = up ? "var(--good)" : "var(--warn)";
+ return `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+  <path d="${d}" fill="none" stroke="${col}" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>
+  ${pts.map(q=>`<circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="2.6" fill="${col}"/>`).join("")}
+ </svg>`;
+}
+let liftQ = "";
+function renderLift(){
+ const pg = document.getElementById("pg-lift"); pg.innerHTML="";
+ const all = allLifts();
+ const wk = liftsInDays(daysBack(7));
+ const wkT = wk.reduce((s,e)=>s+entryLoadKg(e,BWKG()),0);
+ const moves = {};
+ all.forEach(e=>{ (moves[e.ex]=moves[e.ex]||[]).push(e); });
+ const ids = Object.keys(moves);
+
+ pg.appendChild(el(`<div class="card"><div class="row" style="margin:0">
+   <div class="stat"><div class="big">${ids.length}</div><div class="lb">追蹤緊嘅動作</div></div>
+   <div class="stat"><div class="big">${wk.reduce((s,e)=>s+(e.s||1),0)}</div><div class="lb">本週組數</div></div>
+   <div class="stat"><div class="big">${tonneTxt(wkT)}</div><div class="lb">本週總負荷</div></div>
+  </div></div>`));
+
+ const io = el(`<div class="btnrow" style="margin:12px 0">
+   <button class="btn" style="margin:0" id="bImp2">📷 上傳 cap 圖 / 貼文字</button>
+   <button class="btn ghost" style="margin:0;flex:0 0 46%" id="bMan">📅 補舊記錄</button>
+  </div>`);
+ pg.appendChild(io);
+ io.querySelector("#bImp2").onclick = ()=>openImport(TKEY,"",null);
+ io.querySelector("#bMan").onclick = ()=>openImport(shiftKey(1),"",null);
+
+ const st = el(`<div class="card"><h2>設定</h2>
+   <div class="row"><label>顯示單位</label><div class="seg" style="flex:2;margin:0" id="segU">
+     <button data-u="lbs">lbs</button><button data-u="kg">kg</button></div></div>
+   <div class="row"><label>體重（計體重動作負荷）</label>
+     <input type="number" id="bwV" value="${DB.bw.v}" style="width:74px">
+     <select id="bwU" style="width:64px"><option value="kg">kg</option><option value="lbs">lbs</option></select></div>
+  </div>`);
+ pg.appendChild(st);
+ st.querySelectorAll("#segU button").forEach(b=>{
+  if(b.dataset.u===DB.unit) b.classList.add("on");
+  b.onclick = ()=>{ DB.unit=b.dataset.u; save(); renderLift(); };
+ });
+ st.querySelector("#bwU").value = DB.bw.u;
+ st.querySelector("#bwV").oninput = function(){ DB.bw.v = +this.value||70; save(true); };
+ st.querySelector("#bwU").onchange = function(){ DB.bw.u = this.value; save(); };
+
+ if(!ids.length){
+  pg.appendChild(el(`<div class="card"><div class="empty">仲未有力量記錄。<br>撳上面「📷 上傳 cap 圖」，OCR 會自動抽出當日做過咩動作、幾多磅。<br>亦可以直接貼 WOD 文字。</div></div>`));
+  return;
+ }
+
+ const sb = el(`<input type="text" class="srch" placeholder="🔍 搵動作（例 bench）" value="${esc(liftQ)}">`);
+ pg.appendChild(sb);
+ sb.oninput = function(){ liftQ=this.value; const v=this.selectionStart; renderLift();
+  const n=document.querySelector("#pg-lift .srch"); if(n){ n.focus(); n.setSelectionRange(v,v);} };
+
+ const q = liftQ.trim().toLowerCase();
+ const list = ids.map(id=>({id, ss:sessionsOf(id)}))
+  .filter(x=>!q || (BY_ID[x.id]&&BY_ID[x.id].n.toLowerCase().includes(q)))
+  .sort((a,b)=> a.ss[0].date < b.ss[0].date ? 1 : -1);
+
+ const card = el(`<div class="card"><h2>目前進度<span class="tag">最近一次 working set</span></h2></div>`);
+ list.forEach(({id,ss})=>{
+  const mv = BY_ID[id]; if(!mv) return;
+  const cur = ss[0], prev = ss[1];
+  const best = bestOf(id);
+  const tg = DB.targets[id];
+  let big = entryTxt(cur), delta = "";
+  if(cur.w!=null && prev && prev.w!=null){
+   const d = toKg(cur.w,cur.u||"lbs") - toKg(prev.w,prev.u||"lbs");
+   const dd = fromKg(Math.abs(d), DB.unit);
+   delta = d>0.05 ? `<span class="deltaUp">▲ ${fmtW(dd,DB.unit)}</span>`
+        : d<-0.05 ? `<span class="deltaDn">▼ ${fmtW(dd,DB.unit)}</span>`
+        : `<span class="deltaEq">＝ 同上次</span>`;
+  }
+  const topM = Object.keys(mv.m).sort((a,b)=>mv.m[b]-mv.m[a]).slice(0,3);
+  const tags = topM.map(k=>`<span class="mtag">${MUS[k]}</span>`).join("")
+   + (topM.some(k=>MUS[k]===PAT[mv.pat]) ? "" : `<span class="mtag">${PAT[mv.pat]}</span>`);
+  const vals = ss.slice(0,12).reverse().map(e=>e.w!=null?toKg(e.w,e.u||"lbs"):null).filter(v=>v!=null);
+  let tgHtml = "";
+  if(tg && tg.w){
+   const p = Math.min(100, Math.round(toKg(cur.w||0,cur.u||"lbs")/toKg(tg.w,tg.u)*100));
+   tgHtml = `<div class="tprog"><i style="width:${p}%"></i></div>
+    <div class="meta"><span>🎯 目標 ${fmtW(fromKg(toKg(tg.w,tg.u),DB.unit),DB.unit)}</span><span>${p}%</span></div>`;
+  }
+  const row = el(`<div class="lift">
+    <div class="top"><div class="lname">${esc(mv.n)}</div><div class="now">${big}</div></div>
+    <div class="meta"><div class="mtags">${tags}</div><div>${delta}</div></div>
+    ${vals.length>1?sparkSVG(vals):""}
+    <div class="meta"><span>${cur.date}${best?` · 最重 ${fmtW(fromKg(best.kg,DB.unit),DB.unit)}`:""}</span><span>${ss.length} 次記錄 ›</span></div>
+    ${tgHtml}
+   </div>`);
+  row.onclick = ()=>openMoveDetail(id);
+  card.appendChild(row);
+ });
+ pg.appendChild(card);
+}
+
+function openMoveDetail(exId){
+ const mv = BY_ID[exId];
+ openS2(mv.n, body=>{
+  const ss = sessionsOf(exId), hist = historyOf(exId), best = bestOf(exId), tg = DB.targets[exId]||{};
+  const cur = ss[0];
+  const musTxt = Object.keys(mv.m).sort((a,b)=>mv.m[b]-mv.m[a])
+   .map(k=>MUS[k]+" "+Math.round(mv.m[k]*100)+"%").join(" · ");
+  body.appendChild(el(`<div>
+    <div class="big" style="margin:6px 0 2px">${cur?entryTxt(cur):"—"}</div>
+    <div class="sub">最近一次 working set · ${cur?cur.date:""}</div>
+    <div class="kv" style="margin-top:10px"><span>最重紀錄</span><b>${best?fmtW(fromKg(best.kg,DB.unit),DB.unit)+" （"+best.e.date+"）":"—"}</b></div>
+    <div class="kv"><span>總記錄</span><b>${hist.length} 條 / ${ss.length} 次訓練</b></div>
+    <div class="kv"><span>肌群分佈</span><b style="font-weight:400;font-size:12px;text-align:right">${musTxt}</b></div>
+    <div class="kv"><span>分類</span><b>${PAT[mv.pat]} · ${MOD[mv.mod]}</b></div>
+   </div>`));
+
+  const tgc = el(`<div style="margin-top:14px"><div class="goal">🎯 目標重量</div>
+    <div style="display:flex;gap:6px;align-items:center">
+     <input type="number" id="tgW" placeholder="目標" style="width:90px" value="${tg.w??""}">
+     <select id="tgU" style="width:70px"><option value="lbs">lbs</option><option value="kg">kg</option></select>
+     <button class="mini pri" id="tgS">儲存</button>
+     <button class="mini" id="tgD">清除</button>
+    </div></div>`);
+  body.appendChild(tgc);
+  tgc.querySelector("#tgU").value = tg.u || DB.unit;
+  tgc.querySelector("#tgS").onclick = ()=>{
+   const v = +tgc.querySelector("#tgW").value;
+   if(!v){ alert("入個數字先"); return; }
+   DB.targets[exId] = {w:v, u:tgc.querySelector("#tgU").value};
+   save(); closeS2(); renderLift();
+  };
+  tgc.querySelector("#tgD").onclick = ()=>{ delete DB.targets[exId]; save(); closeS2(); renderLift(); };
+
+  body.appendChild(el(`<div class="goal" style="margin-top:16px">📜 歷史（撳🗑刪）</div>`));
+  const hl = el(`<div></div>`); body.appendChild(hl);
+  hist.slice(0,60).forEach(e=>{
+   const r = el(`<div class="exrow"><span class="en">${e.date}</span><span class="ev">${entryTxt(e)}</span><button class="del">🗑</button></div>`);
+   r.querySelector(".del").onclick = ()=>{
+    const L = DB.days[e.date] && DB.days[e.date].lifts;
+    if(!L) return;
+    const i = L.findIndex(x=>x.id===e.id);
+    if(i>=0){ L.splice(i,1); save(); closeS2(); renderLift(); }
+   };
+   hl.appendChild(r);
+  });
+
+  const add = el(`<div style="margin-top:14px">
+    <div class="goal">＋ 加一次記錄</div>
+    <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+     <input type="date" id="aD" value="${TKEY}" max="${TKEY}" style="flex:1;min-width:140px">
+     <input type="number" id="aW" placeholder="重量(${DB.unit})" style="width:100px" value="${cur&&cur.w!=null?Math.round(dispW(cur)*10)/10:""}">
+     <input type="number" id="aS" placeholder="組" style="width:56px" value="${cur?(cur.s||3):3}">
+     <span style="color:var(--dim)">×</span>
+     <input type="number" id="aR" placeholder="次" style="width:56px" value="${cur&&cur.r?cur.r:5}">
+    </div>
+    <button class="btn" id="aGo" style="margin-top:8px">💾 加入</button></div>`);
+  add.querySelector("#aGo").onclick = ()=>{
+   const k = add.querySelector("#aD").value || TKEY;
+   const w = add.querySelector("#aW").value, s = add.querySelector("#aS").value, r = add.querySelector("#aR").value;
+   if(!r && !w){ alert("最少要填重量或次數"); return; }
+   liftsOf(k).push({id:uid(), ex:exId, w:w===""?null:+w, u:DB.unit, s:+s||1, r:r===""?null:+r,
+                    scheme:null, dist:null, cal:null, secs:null, raw:""});
+   save(); closeS2(); renderLift(); renderToday(); toast("✅ "+k+" 已加");
+  };
+  body.appendChild(add);
+ });
+}
+
+/* ============================================================
+   部位分析
+   ============================================================ */
+function heatColor(t){
+ if(!(t>0)) return "#212b40";
+ t = Math.min(1,t);
+ const h = Math.round(212 - 202*t), s = Math.round(34 + 52*t), l = Math.round(26 + 25*t);
+ return "hsl("+h+","+s+"%,"+l+"%)";
+}
+const REGIONS = [
+ /* 正面 */
+ ["shoulders",`<ellipse cx="68" cy="64" rx="16" ry="13"/><ellipse cx="132" cy="64" rx="16" ry="13"/>`],
+ ["chest",    `<rect x="76" y="52" width="48" height="40" rx="11"/>`],
+ ["arms",     `<rect x="53" y="78" width="17" height="42" rx="8"/><rect x="130" y="78" width="17" height="42" rx="8"/>`],
+ ["forearms", `<rect x="48" y="122" width="15" height="44" rx="7"/><rect x="137" y="122" width="15" height="44" rx="7"/>`],
+ ["core",     `<rect x="80" y="94" width="40" height="48" rx="9"/>`],
+ ["legs",     `<rect x="78" y="146" width="20" height="70" rx="9"/><rect x="102" y="146" width="20" height="70" rx="9"/><rect x="80" y="219" width="17" height="50" rx="8"/><rect x="103" y="219" width="17" height="50" rx="8"/>`],
+ /* 背面 */
+ ["shoulders",`<ellipse cx="268" cy="64" rx="16" ry="13"/><ellipse cx="332" cy="64" rx="16" ry="13"/>`],
+ ["back",     `<rect x="276" y="52" width="48" height="66" rx="11"/>`],
+ ["arms",     `<rect x="253" y="78" width="17" height="42" rx="8"/><rect x="330" y="78" width="17" height="42" rx="8"/>`],
+ ["forearms", `<rect x="248" y="122" width="15" height="44" rx="7"/><rect x="337" y="122" width="15" height="44" rx="7"/>`],
+ ["glutes",   `<rect x="278" y="120" width="44" height="32" rx="13"/>`],
+ ["legs",     `<rect x="278" y="155" width="20" height="61" rx="9"/><rect x="302" y="155" width="20" height="61" rx="9"/><rect x="280" y="219" width="17" height="50" rx="8"/><rect x="303" y="219" width="17" height="50" rx="8"/>`]
+];
+function heatSVG(mus, max){
+ const head = `<ellipse cx="100" cy="30" rx="16" ry="19" fill="#1b2334" stroke="var(--line)"/><ellipse cx="300" cy="30" rx="16" ry="19" fill="#1b2334" stroke="var(--line)"/>`;
+ const body = REGIONS.map(([k,shape])=>{
+  const t = max>0 ? (mus[k]||0)/max : 0;
+  return `<g class="reg" fill="${heatColor(t)}">${shape}</g>`;
+ }).join("");
+ return `<svg class="hm" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <g stroke="var(--line)" stroke-width="1.2">${head}${body}</g>
+  <text x="100" y="290" text-anchor="middle">正面</text>
+  <text x="300" y="290" text-anchor="middle">背面</text>
+ </svg>`;
+}
+let anaPeriod = 7;
+function renderAnalysis(){
+ const wrap = el(`<div></div>`);
+ const N = anaPeriod;
+ const cur = liftsInDays(daysBack(N));
+ const prv = liftsInDays(daysBack(N, N));
+ const bw = BWKG();
+ const A = analyze(cur, bw), P = analyze(prv, bw);
+
+ const seg = el(`<div class="seg" id="segP">
+   <button data-n="7">本週</button><button data-n="30">本月</button><button data-n="90">3個月</button></div>`);
+ seg.querySelectorAll("button").forEach(b=>{
+  if(+b.dataset.n===anaPeriod) b.classList.add("on");
+  b.onclick = ()=>{ anaPeriod = +b.dataset.n; renderProg(); };
+ });
+ wrap.appendChild(seg);
+
+ if(!cur.length){
+  wrap.appendChild(el(`<div class="card"><h2>部位分析</h2><div class="empty">呢 ${N} 日仲未有訓練記錄。<br>去「🏋️ 力量」上傳 cap 圖或貼文字就會有。</div></div>`));
+  return wrap;
+ }
+
+ const maxM = Math.max(...MUS_ORDER.filter(k=>k!=="cardio").map(k=>A.mus[k]||0));
+ /* --- 熱力圖 --- */
+ const hc = el(`<div class="card"><h2>部位熱力圖<span class="tag">${N===7?"本週":N===30?"本月":"3個月"}</span></h2>
+   <div class="goal">顏色越紅 = 呢個部位練得越多</div>${heatSVG(A.mus, maxM)}
+   <div class="legend">
+    <span><i style="background:${heatColor(0)}"></i>無</span>
+    <span><i style="background:${heatColor(.25)}"></i>少</span>
+    <span><i style="background:${heatColor(.55)}"></i>中</span>
+    <span><i style="background:${heatColor(.8)}"></i>多</span>
+    <span><i style="background:${heatColor(1)}"></i>最多</span></div></div>`);
+ wrap.appendChild(hc);
+
+ /* --- Volume 長條 --- */
+ const vc = el(`<div class="card"><h2>各部位負荷<span class="tag">vs 上一${N===7?"週":N===30?"月":"季"}</span></h2></div>`);
+ const maxAll = Math.max(maxM, ...MUS_ORDER.map(k=>A.mus[k]||0), 1);
+ MUS_ORDER.forEach(k=>{
+  const v = A.mus[k]||0, p = P.mus[k]||0;
+  const pct = Math.round(v/maxAll*100);
+  let d = "";
+  if(p>0.5){
+   const ch = Math.round((v-p)/p*100);
+   d = ch>4?`<span class="deltaUp">▲${ch}%</span>` : ch<-4?`<span class="deltaDn">▼${-ch}%</span>` : `<span class="deltaEq">＝</span>`;
+  } else if(v>0) d = `<span class="deltaUp">新</span>`;
+  vc.appendChild(el(`<div class="mrow"><span class="mn">${MUS[k]}</span>
+    <span class="mb"><i style="width:${pct}%;background:${heatColor(v/(maxAll||1))}"></i></span>
+    <span class="mv" style="width:82px">${v>0?tonneTxt(v):"–"} ${d}</span></div>`));
+ });
+ vc.appendChild(el(`<div class="note">負荷 = 重量 × 次數 × 組數（體重動作按你體重估算；心肺按 cal／米／時間折算）。</div>`));
+ wrap.appendChild(vc);
+
+ /* --- Modality --- */
+ const totS = (A.mod.W||0)+(A.mod.G||0)+(A.mod.M||0);
+ const cols = {W:"#4f8ef7",G:"#3ddc84",M:"#ffb347"};
+ const mc = el(`<div class="card"><h2>訓練成份<span class="tag">按組數</span></h2>
+   <div class="modbar">${["W","G","M"].map(g=>{
+     const p = totS? (A.mod[g]||0)/totS*100 : 0;
+     return p>0?`<span style="width:${p}%;background:${cols[g]}">${p>14?Math.round(p)+"%":""}</span>`:"";
+   }).join("")}</div>
+   <div class="legend">${["W","G","M"].map(g=>`<span><i style="background:${cols[g]}"></i>${MOD[g]} ${A.mod[g]||0}組</span>`).join("")}</div></div>`);
+ wrap.appendChild(mc);
+
+ /* --- 平衡度警示 --- */
+ const wc = el(`<div class="card"><h2>平衡度 / 風險</h2></div>`);
+ const W = [];
+ const push = (A.mus.chest||0)+(A.mus.shoulders||0), pull = A.mus.back||0;
+ if(push>200 || pull>200){
+  const r = pull>0 ? push/pull : 99;
+  if(r>1.6) W.push(["bad",`推 : 拉 = ${r.toFixed(1)} : 1 — 推得太多。你左肩本身有問題，建議加返 Row / Face Pull / Scap Pull-up 平衡返。`]);
+  else if(r<0.55) W.push(["warn",`推 : 拉 = ${r.toFixed(2)} : 1 — 拉多過推好多，胸／前鋸肌可以補返少少。`]);
+  else W.push(["ok",`推 : 拉 = ${r.toFixed(2)} : 1 — 比例健康 ✅`]);
+ }
+ const sq = A.pat.squat||0, hi = A.pat.hinge||0;
+ if(sq>200 || hi>200){
+  const r = hi>0 ? sq/hi : 99;
+  if(r>2.5) W.push(["warn",`蹲 : 髖鉸 = ${r.toFixed(1)} : 1 — 股四頭主導。加 Deadlift／RDL／Hip Thrust 練返臀，可以減小腿代償。`]);
+  else if(r<0.4) W.push(["warn",`髖鉸多過蹲好多 — 記得保留 Front／Back Squat 嘅膝主導模式。`]);
+  else W.push(["ok",`蹲 : 髖鉸 = ${r.toFixed(2)} : 1 — 平衡 ✅`]);
+ }
+ /* ECU / 肩 增幅警示（配合復健目標） */
+ [["forearms","前臂 / ECU","手腕"],["shoulders","肩","左肩"]].forEach(([k,lbl,part])=>{
+  const v=A.mus[k]||0, p=P.mus[k]||0;
+  if(p>100 && v/p > 1.4) W.push(["bad",`⚠️ ${lbl}負荷比上一期升咗 ${Math.round((v/p-1)*100)}% — 升太急好易再 overload。${part}有唔妥就減量。`]);
+  else if(v>0 && p>100 && v/p < 0.6) W.push(["warn",`${lbl}負荷跌咗 ${Math.round((1-v/p)*100)}% — 如果係主動減量冇問題。`]);
+ });
+ /* 痛感 vs 負荷 */
+ const painDays = daysBack(N).map(k=>DB.days[k]).filter(d=>d&&d.ecu!=null);
+ if(painDays.length>=3){
+  const avg = painDays.reduce((s,d)=>s+d.ecu,0)/painDays.length;
+  const pp = daysBack(N,N).map(k=>DB.days[k]).filter(d=>d&&d.ecu!=null);
+  if(pp.length>=3){
+   const pavg = pp.reduce((s,d)=>s+d.ecu,0)/pp.length;
+   if(avg > pavg+1) W.push(["bad",`ECU 痛感由 ${pavg.toFixed(1)} 升到 ${avg.toFixed(1)} — 同期前臂負荷 ${tonneTxt(A.mus.forearms||0)}。考慮暫時停 Dead Hang / Carry。`]);
+   else if(avg < pavg-0.7) W.push(["ok",`ECU 痛感由 ${pavg.toFixed(1)} 跌到 ${avg.toFixed(1)} — 進步緊 💪`]);
+  }
+ }
+ /* 冷落咗嘅部位 */
+ const cold = MUS_ORDER.filter(k=>k!=="cardio" && (A.mus[k]||0) < maxM*0.08);
+ if(cold.length) W.push(["warn",`呢 ${N} 日幾乎冇練：${cold.map(k=>MUS[k]).join("、")}`]);
+ if(!(A.mus.cardio>0)) W.push(["warn",`呢 ${N} 日冇記錄到心肺（Row / Ski / Bike / Run）。`]);
+
+ if(!W.length) W.push(["ok","數據仲未夠做平衡分析，多記幾日就會有。"]);
+ W.forEach(([c,t])=>wc.appendChild(el(`<div class="warnbox ${c}">${t}</div>`)));
+ wrap.appendChild(wc);
+
+ /* --- 最多做嘅動作 --- */
+ const top = Object.keys(A.sets).sort((a,b)=>A.sets[b]-A.sets[a]).slice(0,8);
+ if(top.length){
+  const tc = el(`<div class="card"><h2>做得最多<span class="tag">${N}日內</span></h2></div>`);
+  top.forEach(id=>tc.appendChild(el(`<div class="exrow"><span class="en">${esc((BY_ID[id]||{}).n||id)}</span><span class="ev">${A.sets[id]} 組</span></div>`)));
+  wrap.appendChild(tc);
+ }
+ return wrap;
+}
+
+/* ============================================================
+   接駁返原有頁面
+   ============================================================ */
+const _origToday = renderToday;
+renderToday = function(){
+ _origToday();
+ const pg = document.getElementById("pg-today");
+ const L = liftsOf(TKEY);
+ const c = el(`<div class="card"><h2>🏋️ 今日訓練記錄<span class="tag">${L.length} 個動作</span></h2>
+   <div class="btnrow"><button class="btn" style="margin:0" id="tImp">📷 上傳 cap 圖 / 貼文字</button></div>
+   <div id="tList"></div></div>`);
+ const list = c.querySelector("#tList");
+ if(!L.length) list.appendChild(el(`<div class="empty">影低白板或 app 個 screen，OCR 自動抽出動作同重量。</div>`));
+ L.forEach(e=>{
+  const r = el(`<div class="exrow"><span class="en">${esc((BY_ID[e.ex]||{}).n||e.ex)}</span><span class="ev">${entryTxt(e)}</span><button class="del">🗑</button></div>`);
+  r.querySelector(".del").onclick = ()=>{ const i=L.findIndex(x=>x.id===e.id); if(i>=0){ L.splice(i,1); save(); renderToday(); } };
+  list.appendChild(r);
+ });
+ const caps = (DB.days[TKEY]&&DB.days[TKEY].caps)||[];
+ if(caps.length){
+  const g = el(`<div class="imgs" style="margin-top:10px"></div>`);
+  caps.forEach(iid=>imgGet(iid).then(d=>{ if(!d) return; const im=el(`<img alt="cap">`); im.src=d;
+   im.onclick=()=>{ if(confirm("刪除呢張 cap 圖？")){ DB.days[TKEY].caps=caps.filter(x=>x!==iid); imgDel(iid); save(); renderToday(); } };
+   g.appendChild(im); }).catch(()=>{}));
+  c.appendChild(g);
+ }
+ c.querySelector("#tImp").onclick = ()=>openImport(TKEY,"",null);
+ pg.insertBefore(c, pg.children[1] || null);
+};
+
+const _origProg = renderProg;
+renderProg = function(){
+ _origProg();
+ const pg = document.getElementById("pg-prog");
+ const backup = pg.lastElementChild;          /* 備份卡留返最尾 */
+ if(backup) pg.removeChild(backup);
+ pg.appendChild(renderAnalysis());
+ if(backup) pg.appendChild(backup);
+};
+
+document.querySelector('[data-pg=lift]').addEventListener("click", renderLift);
 
 /* ---------- Tabs ---------- */
 document.querySelectorAll(".tabs button").forEach(b=>{
