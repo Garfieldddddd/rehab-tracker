@@ -410,7 +410,11 @@ function arrowBtns(arr, id, after){
 }
 function blockCard(b, sec){
  const on = blockOn(TKEY, b);
- const card = el(`<div class="card"${on?"":' style="opacity:.55"'}><h2><span>${esc(b.name)}</span><span class="tag">${esc(b.tag)}</span></h2>${b.goal?`<div class="goal">🎯 ${esc(b.goal)}</div>`:""}</div>`);
+ const bm = blockMuscles(b);
+ const btags = bm.top.length
+  ? `<div class="mtags" style="margin:2px 0 6px">${bm.top.slice(0,4).map(k=>`<span class="mtag">${MUS[k]}</span>`).join("")}${bm.known<bm.total?`<span class="mtag">+${bm.total-bm.known}個未分類</span>`:""}</div>`
+  : "";
+ const card = el(`<div class="card"${on?"":' style="opacity:.55"'}><h2><span>${esc(b.name)}</span><span class="tag">${esc(b.tag)}</span></h2>${btags}${b.goal?`<div class="goal">🎯 ${esc(b.goal)}</div>`:""}</div>`);
  if(editMode){
   const h = card.querySelector("h2");
   const bo = el(`<button class="ebtn" title="計分方式">${b.optIn?"☐":"☑"}</button>`);
@@ -1797,7 +1801,7 @@ function heatSVG(mus, max){
  const head = `<ellipse cx="100" cy="30" rx="16" ry="19" fill="#1b2334" stroke="var(--line)"/><ellipse cx="300" cy="30" rx="16" ry="19" fill="#1b2334" stroke="var(--line)"/>`;
  const body = REGIONS.map(([k,shape])=>{
   const t = max>0 ? (mus[k]||0)/max : 0;
-  return `<g class="reg" fill="${heatColor(t)}">${shape}</g>`;
+  return `<g class="reg" data-mus="${k}" style="cursor:pointer" fill="${heatColor(t)}">${shape}</g>`;
  }).join("");
  return `<svg class="hm" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
   <g stroke="var(--line)" stroke-width="1.2">${head}${body}</g>
@@ -1836,7 +1840,11 @@ function renderAnalysis(){
     <span><i style="background:${heatColor(.25)}"></i>少</span>
     <span><i style="background:${heatColor(.55)}"></i>中</span>
     <span><i style="background:${heatColor(.8)}"></i>多</span>
-    <span><i style="background:${heatColor(1)}"></i>最多</span></div></div>`);
+    <span><i style="background:${heatColor(1)}"></i>最多</span></div>
+    <div class="note">撳身體任何一個部位，睇邊啲動作貢獻緊個顏色。</div></div>`);
+ hc.querySelectorAll(".reg").forEach(g=>{
+  g.addEventListener("click", ()=>openMusDetail(g.getAttribute("data-mus"), N));
+ });
  wrap.appendChild(hc);
 
  /* --- Volume 長條 --- */
@@ -1850,9 +1858,11 @@ function renderAnalysis(){
    const ch = Math.round((v-p)/p*100);
    d = ch>4?`<span class="deltaUp">▲${ch}%</span>` : ch<-4?`<span class="deltaDn">▼${-ch}%</span>` : `<span class="deltaEq">＝</span>`;
   } else if(v>0) d = `<span class="deltaUp">新</span>`;
-  vc.appendChild(el(`<div class="mrow"><span class="mn">${MUS[k]}</span>
+  const row = el(`<div class="mrow" style="cursor:pointer"><span class="mn">${MUS[k]}</span>
     <span class="mb"><i style="width:${pct}%;background:${heatColor(v/(maxAll||1))}"></i></span>
-    <span class="mv" style="width:82px">${v>0?tonneTxt(v):"–"} ${d}</span></div>`));
+    <span class="mv" style="width:82px">${v>0?tonneTxt(v):"–"} ${d}</span></div>`);
+  if(v>0) row.onclick = ()=>openMusDetail(k, N);
+  vc.appendChild(row);
  });
  vc.appendChild(el(`<div class="note">負荷 = 重量 × 次數 × 組數（體重動作按你體重估算；心肺按 cal／米／時間折算）。</div>`));
  wrap.appendChild(vc);
@@ -1921,6 +1931,429 @@ function renderAnalysis(){
  return wrap;
 }
 
+
+
+/* ============================================================
+   康復動作 → 部位對照
+   ============================================================ */
+/* 由處方（"2×15" / "5×30秒" / "3×20m"）估算份量單位 */
+function rxVolume(rx){
+ const L = normLine(rx||"");
+ if(/每週|weekly/.test(L)) return 10;
+ let m = L.match(/(\d{1,2})\s*x\s*(\d{1,3})/);
+ if(m){
+  const sets = +m[1], per = +m[2];
+  if(/sec|秒/.test(L)) return sets * Math.max(1, per/10);   /* 等長：10秒 = 1下 */
+  return sets * per;
+ }
+ m = L.match(/(\d{1,3})\s*(?:sec|秒)/); if(m) return Math.max(1, +m[1]/10);
+ m = L.match(/(\d{1,3})\s*min/); if(m) return Math.max(1, +m[1]*6);
+ m = L.match(/(\d{1,3})/); if(m) return +m[1];
+ return 10;
+}
+/* 一個康復動作 → 肌群分佈 */
+function itemMus(it){
+ const hit = findMove(it.name);
+ if(!hit) return null;
+ const mv = BY_ID[hit.id]; if(!mv) return null;
+ const vol = rxVolume(it.rx);
+ const mus = {};
+ for(const k in mv.m) mus[k] = vol * mv.m[k];
+ return {mus, vol, ex:hit.id, name:mv.n};
+}
+/* 一個 block → 主要練邊度 */
+function blockMuscles(b){
+ const mus = {};
+ let known = 0;
+ (b.items||[]).forEach(it=>{
+  const r = itemMus(it);
+  if(!r) return;
+  known++;
+  for(const k in r.mus) mus[k] = (mus[k]||0) + r.mus[k];
+ });
+ const top = Object.keys(mus).sort((a,b2)=>mus[b2]-mus[a]);
+ return {mus, top, known, total:(b.items||[]).length};
+}
+/* 一段日子入面，真係剔咗嘅康復動作 → 部位覆蓋 */
+function rehabCoverage(ks){
+ const mus = {}, byItem = {};
+ ks.forEach(k=>{
+  const dd = DB.days[k]; if(!dd) return;
+  const ch = dd.checks || {};
+  blocksFor(k).forEach(b=>{
+   b.items.forEach(it=>{
+    if(!ch[it.id]) return;
+    const r = itemMus(it);
+    if(!r) return;
+    for(const key in r.mus) mus[key] = (mus[key]||0) + r.mus[key];
+    if(!byItem[it.id]) byItem[it.id] = {name:it.name, rx:it.rx, ex:r.ex, mus:r.mus, units:0, days:0, block:b.name};
+    byItem[it.id].units += r.vol; byItem[it.id].days++;
+   });
+  });
+ });
+ const total = Object.values(mus).reduce((a,b)=>a+b,0);
+ return {mus, byItem, total};
+}
+/* 康復覆蓋卡 */
+function rehabMusCard(){
+ const N = anaPeriod;
+ const ks = daysBack(N);
+ const C = rehabCoverage(ks);
+ const items = Object.values(C.byItem);
+ const c = el(`<div class="card"><h2>康復訓練練緊咩部位<span class="tag">${N===7?"本週":N===30?"本月":"3個月"}</span></h2>
+   <div class="goal">只計你真係剔咗嘅康復動作（Phase / Block），同力量訓練分開計。</div></div>`);
+ if(!C.total){
+  c.appendChild(el(`<div class="empty">呢 ${N} 日仲未剔過康復動作。</div>`));
+  return c;
+ }
+ const max = Math.max(...MUS_ORDER.map(k=>C.mus[k]||0), 1);
+ MUS_ORDER.filter(k=>k!=="cardio").forEach(k=>{
+  const v = C.mus[k]||0;
+  const row = el(`<div class="mrow"${v>0?' style="cursor:pointer"':""}><span class="mn">${MUS[k]}</span>
+    <span class="mb"><i style="width:${Math.round(v/max*100)}%;background:${heatColor(v/max)}"></i></span>
+    <span class="mv" style="width:72px">${v>0?Math.round(v)+" 下":"–"}</span></div>`);
+  if(v>0) row.onclick = ()=>openRehabMus(k, ks);
+  c.appendChild(row);
+ });
+ c.appendChild(el(`<div class="note">單位＝完成次數（等長動作每 10 秒當 1 下）。撳部位睇邊個動作練緊佢。</div>`));
+
+ /* 未覆蓋提示 */
+ const cold = MUS_ORDER.filter(k=>k!=="cardio" && !(C.mus[k]>max*0.05));
+ if(cold.length) c.appendChild(el(`<div class="warnbox warn">康復動作幾乎冇掂到：${cold.map(k=>MUS[k]).join("、")}。如果嗰度有唔妥，可以喺編輯模式加返動作。</div>`));
+ return c;
+}
+function openRehabMus(key, ks){
+ const C = rehabCoverage(ks);
+ const scored = Object.values(C.byItem)
+   .map(x=>({x, v:(x.mus[key]||0) * x.days}))
+   .filter(o=>o.v>0).sort((a,b)=>b.v-a.v);
+ openS2(MUS[key] + " · 康復動作", body=>{
+  const tot = scored.reduce((s,o)=>s+o.v,0);
+  body.appendChild(el(`<div class="big" style="margin:6px 0 2px">${Math.round(tot)} 下</div>
+    <div class="sub">${scored.length} 個康復動作練緊${MUS[key]}</div>`));
+  const max = scored.length ? scored[0].v : 1;
+  scored.forEach(({x,v})=>{
+   body.appendChild(el(`<div style="border-top:1px solid var(--line);padding:9px 2px">
+     <div style="display:flex;justify-content:space-between;gap:8px">
+      <span style="font-size:14px">${esc(x.name)}</span><b>${Math.round(v/tot*100)}%</b></div>
+     <span class="mb" style="display:flex;height:12px;background:var(--card2);border-radius:4px;overflow:hidden;margin-top:5px">
+      <i style="display:block;height:100%;width:${Math.round(v/max*100)}%;background:${heatColor(v/max)}"></i></span>
+     <div class="meta"><span>${esc(x.block)} · ${esc(x.rx||"")}</span><span>做咗 ${x.days} 日</span></div></div>`));
+  });
+ });
+}
+
+/* ============================================================
+   部位明細 · 日曆詳情 · 康復進度 · 每週摘要
+   ============================================================ */
+
+/* ---------- 邊啲動作貢獻咗呢個部位 ---------- */
+function musBreakdown(entries, key, bw){
+ const by = {};
+ entries.forEach(e=>{
+  const mv = BY_ID[e.ex]; if(!mv || !mv.m[key]) return;
+  const kg = entryLoadKg(e, bw) * mv.m[key];
+  if(!by[e.ex]) by[e.ex] = {ex:e.ex, kg:0, sets:0, days:new Set(), share:mv.m[key]};
+  by[e.ex].kg += kg; by[e.ex].sets += (e.s||1); by[e.ex].days.add(e.date);
+ });
+ const arr = Object.values(by).sort((a,b)=>b.kg-a.kg);
+ const tot = arr.reduce((s,x)=>s+x.kg,0);
+ arr.forEach(x=>x.pct = tot ? x.kg/tot*100 : 0);
+ return {arr, tot};
+}
+function openMusDetail(key, N){
+ const bw = BWKG(), entries = liftsInDays(daysBack(N));
+ const {arr, tot} = musBreakdown(entries, key, bw);
+ openS2(MUS[key] + " · " + (N===7?"本週":N===30?"本月":"3個月"), body=>{
+  body.appendChild(el(`<div class="big" style="margin:6px 0 2px">${tonneTxt(tot)}</div>
+    <div class="sub">總負荷 · ${arr.length} 個動作貢獻</div>`));
+  if(!arr.length){ body.appendChild(el(`<div class="empty">呢段時間冇練到${MUS[key]}。</div>`)); return; }
+  const max = arr[0].kg;
+  arr.forEach(x=>{
+   const mv = BY_ID[x.ex]||{};
+   const r = el(`<div style="border-top:1px solid var(--line);padding:9px 2px">
+     <div class="top" style="display:flex;justify-content:space-between;gap:8px">
+      <span style="font-size:14px">${esc(mv.n||x.ex)}</span>
+      <b style="font-size:14px">${Math.round(x.pct)}%</b></div>
+     <span class="mb" style="display:flex;height:12px;background:var(--card2);border-radius:4px;overflow:hidden;margin-top:5px">
+      <i style="display:block;height:100%;width:${Math.round(x.kg/max*100)}%;background:${heatColor(x.kg/max)}"></i></span>
+     <div class="meta"><span>${tonneTxt(x.kg)} · ${x.sets}組 · ${x.days.size}日</span>
+      <span>呢個動作 ${Math.round(x.share*100)}% 落${MUS[key]}</span></div>
+    </div>`);
+   r.onclick = ()=>{ closeS2(); openMoveDetail(x.ex); };
+   body.appendChild(r);
+  });
+  body.appendChild(el(`<div class="note" style="margin-top:12px">百分比 = 呢個動作佔${MUS[key]}總負荷嘅比例。撳任何一行入去睇該動作嘅重量進度。</div>`));
+ });
+}
+
+/* ---------- 日曆：撳一日睇做過咩 ---------- */
+function openDayDetail(k){
+ const dd = DB.days[k];
+ const wd = WD[new Date(k+"T12:00:00").getDay()];
+ openS2(k + "（" + wd + "）", body=>{
+  if(!dd){ body.appendChild(el(`<div class="empty">呢日冇任何記錄。</div>`)); }
+  else {
+   const n = planCount(k), done = doneCount(k), pct = n?Math.round(done/n*100):0;
+   body.appendChild(el(`<div class="big" style="margin:6px 0 2px">${pct}%</div>
+     <div class="sub">打卡 ${done}/${n} ${pct>=80?"· 達標 ✅":""}</div>
+     <div class="prog" style="margin-top:8px"><i style="width:${pct}%"></i></div>`));
+
+   /* 每個 block 完成幾多 */
+   const bs = blocksFor(k);
+   if(bs.length){
+    body.appendChild(el(`<div class="goal" style="margin-top:14px">📋 康復打卡</div>`));
+    bs.forEach(b=>{
+     const dn = b.items.filter(it=>(dd.checks||{})[it.id]).length;
+     body.appendChild(el(`<div class="exrow"><span class="en">${esc(b.name)}</span>
+       <span class="ev" style="color:${dn===b.items.length?"var(--good)":"var(--dim)"}">${dn}/${b.items.length}</span></div>`));
+    });
+    const RC = rehabCoverage([k]);
+    const rt = MUS_ORDER.filter(x=>RC.mus[x]>0).sort((a,b2)=>RC.mus[b2]-RC.mus[a]).slice(0,5);
+    if(rt.length) body.appendChild(el(`<div class="chips" style="margin-top:6px">${
+      rt.map(x=>`<button class="on">${MUS[x]} ${Math.round(RC.mus[x])}下</button>`).join("")}</div>`));
+   }
+   /* 力量 */
+   const L = dd.lifts || [];
+   if(L.length){
+    const ids = [...new Set(L.map(e=>e.ex))];
+    const bw = BWKG();
+    body.appendChild(el(`<div class="goal" style="margin-top:14px">🏋️ 訓練記錄 · 總負荷 ${tonneTxt(L.reduce((s,e)=>s+entryLoadKg(e,bw),0))}</div>`));
+    ids.forEach(id=>{
+     const gs = groupsOn(id, k);
+     const r = el(`<div class="exrow"><span class="en">${esc((BY_ID[id]||{}).n||id)}</span><span class="ev">${groupsTxt(gs)}</span></div>`);
+     r.onclick = ()=>{ closeS2(); openMoveDetail(id); };
+     body.appendChild(r);
+    });
+    /* 嗰日練咗咩部位 */
+    const A = analyze(L.map(e=>Object.assign({date:k},e)), bw);
+    const top = MUS_ORDER.filter(x=>A.mus[x]>0).sort((a,b)=>A.mus[b]-A.mus[a]).slice(0,4);
+    if(top.length) body.appendChild(el(`<div class="chips" style="margin-top:8px">${
+      top.map(x=>`<button class="on">${MUS[x]} ${tonneTxt(A.mus[x])}</button>`).join("")}</div>`));
+   }
+   /* 狀態 */
+   const pv = PARTS().map(p=>[p, painGet(dd,p.id)]).filter(x=>x[1]!=null);
+   if(pv.length || dd.feel || dd.note){
+    body.appendChild(el(`<div class="goal" style="margin-top:14px">🩺 當日狀態</div>`));
+    pv.forEach(([p,v])=>body.appendChild(el(`<div class="kv"><span>${esc(p.n)}</span><b style="color:${v>=6?"var(--bad)":v>=3?"var(--warn)":"var(--good)"}">${v}/10</b></div>`)));
+    if(dd.feel) body.appendChild(el(`<div class="kv"><span>訓練感受</span><b style="font-size:18px">${FEELS[dd.feel-1]}</b></div>`));
+    if(dd.wod) body.appendChild(el(`<div class="kv"><span>CrossFit 課</span><b>有 ✅</b></div>`));
+    if(dd.note) body.appendChild(el(`<div class="note" style="margin-top:6px">📝 ${esc(dd.note)}</div>`));
+   }
+   /* cap 圖 */
+   const caps = dd.caps || [];
+   if(caps.length){
+    const g = el(`<div class="imgs" style="margin-top:10px"></div>`);
+    caps.forEach(iid=>imgGet(iid).then(u=>{ if(!u) return; const im=el(`<img alt="cap">`); im.src=u; g.appendChild(im); }).catch(()=>{}));
+    body.appendChild(el(`<div class="goal" style="margin-top:14px">📷 當日 cap 圖</div>`));
+    body.appendChild(g);
+   }
+  }
+  const b = el(`<button class="btn ghost" style="margin-top:16px">📷 補／改呢日記錄</button>`);
+  b.onclick = ()=>{ closeS2(); openImport(k,"",null); };
+  body.appendChild(b);
+ });
+}
+
+/* ---------- 通用 SVG 折線圖 ---------- */
+function lineChartSVG(labels, series){
+ const W=340, H=150, padL=26, padR=8, padT=10, padB=22;
+ const n = labels.length, iw = W-padL-padR, ih = H-padT-padB;
+ const x = i => n<2 ? padL+iw/2 : padL + iw*i/(n-1);
+ const y = v => padT + ih*(1-v);
+ let g = "";
+ for(let t=0;t<=1;t+=0.25) g += `<line x1="${padL}" y1="${y(t).toFixed(1)}" x2="${W-padR}" y2="${y(t).toFixed(1)}" stroke="var(--line)" stroke-width="1"/>`;
+ g += [0,0.5,1].map(t=>`<text x="2" y="${(y(t)+4).toFixed(1)}" fill="var(--dim)" font-size="9">${Math.round(t*100)}</text>`).join("");
+ series.forEach(s=>{
+  const pts = s.vals.map((v,i)=>v==null?null:[x(i),y(v)]).filter(Boolean);
+  if(!pts.length) return;
+  g += `<polyline fill="none" stroke="${s.color}" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" points="${pts.map(p=>p[0].toFixed(1)+","+p[1].toFixed(1)).join(" ")}"/>`;
+  g += pts.map(p=>`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="2.8" fill="${s.color}"/>`).join("");
+ });
+ g += labels.map((l,i)=>i%2||n<=6?`<text x="${x(i).toFixed(1)}" y="${H-6}" fill="var(--dim)" font-size="8.5" text-anchor="middle">${esc(l)}</text>`:"").join("");
+ return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block;margin-top:6px">${g}</svg>`;
+}
+
+/* ---------- 每週統計 ---------- */
+function weekKeys(back){            /* back=0 → 最近7日 */
+ return daysBack(7, back*7);
+}
+function weekStats(back){
+ const ks = weekKeys(back), bw = BWKG();
+ const days = ks.map(k=>DB.days[k]).filter(Boolean);
+ const logged = ks.filter(k=>DB.days[k] && (doneCount(k)>0 || (DB.days[k].lifts||[]).length));
+ const pcts = ks.filter(k=>DB.days[k]).map(k=>dayPct(k));
+ const hit = ks.filter(k=>dayPct(k)>=0.8).length;
+ const L = liftsInDays(ks);
+ const A = analyze(L, bw);
+ const feels = days.map(d=>d.feel).filter(v=>v!=null);
+ const pains = {};
+ PARTS().forEach(p=>{
+  const vs = days.map(d=>painGet(d,p.id)).filter(v=>v!=null);
+  if(vs.length) pains[p.id] = vs.reduce((a,b)=>a+b,0)/vs.length;
+ });
+ return {
+  ks, from:ks[ks.length-1], to:ks[0],
+  loggedDays: logged.length,
+  hitDays: hit,
+  avgPct: pcts.length ? pcts.reduce((a,b)=>a+b,0)/pcts.length : 0,
+  sets: L.reduce((s,e)=>s+(e.s||1),0),
+  tonnage: A.total,
+  mus: A.mus, mod: A.mod,
+  feel: feels.length ? feels.reduce((a,b)=>a+b,0)/feels.length : null,
+  pains
+ };
+}
+
+/* ---------- 康復進度（折線） ---------- */
+function rehabCard(){
+ const NW = 10;
+ const ws = [];
+ for(let i=NW-1;i>=0;i--) ws.push(weekStats(i));
+ const labels = ws.map(w=>w.to.slice(5).replace("-","/"));
+ const series = [{name:"打卡完成率", color:"#3ddc84", vals:ws.map(w=>w.loggedDays?w.avgPct:null)}];
+ PARTS().forEach(p=>{
+  const vals = ws.map(w=>w.pains[p.id]!=null ? w.pains[p.id]/10 : null);
+  if(vals.some(v=>v!=null)) series.push({name:p.n+"（痛）", color:p.c, vals});
+ });
+ const c = el(`<div class="card"><h2>康復進度<span class="tag">近 ${NW} 星期</span></h2>
+   <div class="goal">綠線向上 + 痛感線向落 = 走緊啱路</div>
+   ${lineChartSVG(labels, series)}
+   <div class="legend">${series.map(s=>`<span><i style="background:${s.color}"></i>${esc(s.name)}</span>`).join("")}</div></div>`);
+
+ /* 一句總結 */
+ const now = ws[NW-1], old = ws[Math.max(0,NW-5)];
+ const msgs = [];
+ if(now.loggedDays && old.loggedDays){
+  const dp = (now.avgPct-old.avgPct)*100;
+  if(dp > 8) msgs.push(["ok",`打卡完成率 4 週內由 ${Math.round(old.avgPct*100)}% 升到 ${Math.round(now.avgPct*100)}% 📈`]);
+  else if(dp < -8) msgs.push(["warn",`打卡完成率由 ${Math.round(old.avgPct*100)}% 跌到 ${Math.round(now.avgPct*100)}% — 係咪計劃太密？可以喺編輯模式減啲動作。`]);
+ }
+ PARTS().forEach(p=>{
+  const a = now.pains[p.id], b = old.pains[p.id];
+  if(a==null || b==null) return;
+  if(b-a >= 1) msgs.push(["ok",`${p.n} 由 ${b.toFixed(1)} 跌到 ${a.toFixed(1)} — 有進步 💪`]);
+  else if(a-b >= 1) msgs.push(["bad",`${p.n} 由 ${b.toFixed(1)} 升到 ${a.toFixed(1)} — 留意訓練量。`]);
+ });
+ const streakW = (()=>{ let s=0; for(let i=0;i<NW;i++){ const wk=ws[NW-1-i]; if(wk.hitDays>=4) s++; else break; } return s; })();
+ if(streakW) msgs.push(["ok",`連續 ${streakW} 個星期有 4 日以上達標 🔥`]);
+ msgs.slice(0,4).forEach(([k,t])=>c.appendChild(el(`<div class="warnbox ${k}">${t}</div>`)));
+ return c;
+}
+
+/* ---------- 每週摘要 ---------- */
+function weeklyCard(){
+ const c = el(`<div class="card"><h2>每週摘要<span class="tag">撳入去睇詳情</span></h2></div>`);
+ let any = false;
+ for(let i=0;i<6;i++){
+  const w = weekStats(i);
+  if(!w.loggedDays && !w.sets) continue;
+  any = true;
+  const top = MUS_ORDER.filter(k=>w.mus[k]>0).sort((a,b)=>w.mus[b]-w.mus[a]).slice(0,3);
+  const painTxt = Object.keys(w.pains).map(id=>{
+   const p = PARTS().find(x=>x.id===id);
+   return p ? p.n.replace(/痛$/,"")+" "+w.pains[id].toFixed(1) : "";
+  }).filter(Boolean).join(" · ");
+  const r = el(`<div class="lift">
+    <div class="top"><div class="lname">${w.from.slice(5)} – ${w.to.slice(5)}${i===0?"（本週）":""}</div>
+     <div class="now" style="font-size:17px">${Math.round(w.avgPct*100)}%</div></div>
+    <div class="meta"><div class="mtags">${top.length?top.map(k=>`<span class="mtag">${MUS[k]} ${tonneTxt(w.mus[k])}</span>`).join(""):`<span class="mtag">冇力量記錄</span>`}</div>
+     <div>${w.feel!=null?FEELS[Math.round(w.feel)-1]:""}</div></div>
+    <div class="meta"><span>打卡 ${w.loggedDays}日 · 達標 ${w.hitDays}日 · ${w.sets}組 · ${tonneTxt(w.tonnage)}</span></div>
+    ${painTxt?`<div class="meta"><span>🩺 ${esc(painTxt)}</span></div>`:""}
+   </div>`);
+  r.onclick = ()=>openWeekDetail(i);
+  c.appendChild(r);
+ }
+ if(!any) c.appendChild(el(`<div class="empty">仲未有足夠記錄。</div>`));
+ return c;
+}
+function openWeekDetail(back){
+ const w = weekStats(back), bw = BWKG();
+ openS2(w.from.slice(5) + " – " + w.to.slice(5) + (back===0?"（本週）":""), body=>{
+  body.appendChild(el(`<div class="row" style="margin:4px 0 10px">
+    <div class="stat"><div class="big">${Math.round(w.avgPct*100)}%</div><div class="lb">平均完成率</div></div>
+    <div class="stat"><div class="big">${w.hitDays}</div><div class="lb">達標日</div></div>
+    <div class="stat"><div class="big">${tonneTxt(w.tonnage)}</div><div class="lb">總負荷</div></div></div>`));
+
+  body.appendChild(el(`<div class="goal">🗓 逐日（撳入去）</div>`));
+  w.ks.slice().reverse().forEach(k=>{
+   const dd = DB.days[k];
+   const pct = dd ? Math.round(dayPct(k)*100) : 0;
+   const nl = dd ? (dd.lifts||[]).length : 0;
+   const wd = WD[new Date(k+"T12:00:00").getDay()];
+   const r = el(`<div class="exrow"><span class="en">${k.slice(5)}（${wd}）</span>
+     <span class="ev">${dd?`${pct}%${nl?` · ${nl}條訓練`:""}${dd.feel?" "+FEELS[dd.feel-1]:""}`:"—"}</span>
+     <span style="color:var(--dim)">›</span></div>`);
+   r.onclick = ()=>openDayDetail(k);
+   body.appendChild(r);
+  });
+
+  const L = liftsInDays(w.ks);
+  if(L.length){
+   const A = analyze(L, bw);
+   const max = Math.max(...MUS_ORDER.map(k=>A.mus[k]||0), 1);
+   body.appendChild(el(`<div class="goal" style="margin-top:14px">💪 練咗咩部位（撳睇邊個動作）</div>`));
+   MUS_ORDER.filter(k=>A.mus[k]>0).sort((a,b)=>A.mus[b]-A.mus[a]).forEach(k=>{
+    const r = el(`<div class="mrow"><span class="mn">${MUS[k]}</span>
+      <span class="mb"><i style="width:${Math.round(A.mus[k]/max*100)}%;background:${heatColor(A.mus[k]/max)}"></i></span>
+      <span class="mv" style="width:72px">${tonneTxt(A.mus[k])}</span></div>`);
+    r.onclick = ()=>{ closeS2(); openMusDetailRange(k, w.ks); };
+    body.appendChild(r);
+   });
+   const ids = Object.keys(A.sets).sort((a,b)=>A.sets[b]-A.sets[a]);
+   body.appendChild(el(`<div class="goal" style="margin-top:14px">🏋️ 做過嘅動作</div>`));
+   ids.forEach(id=>{
+    const r = el(`<div class="exrow"><span class="en">${esc((BY_ID[id]||{}).n||id)}</span><span class="ev">${A.sets[id]} 組</span></div>`);
+    r.onclick = ()=>{ closeS2(); openMoveDetail(id); };
+    body.appendChild(r);
+   });
+  }
+  const RC = rehabCoverage(w.ks);
+  if(RC.total){
+   const rmax = Math.max(...MUS_ORDER.map(k=>RC.mus[k]||0), 1);
+   body.appendChild(el(`<div class="goal" style="margin-top:14px">🩹 康復訓練覆蓋（完成次數）</div>`));
+   MUS_ORDER.filter(k=>RC.mus[k]>0).sort((a,b2)=>RC.mus[b2]-RC.mus[a]).forEach(k=>{
+    const r = el(`<div class="mrow" style="cursor:pointer"><span class="mn">${MUS[k]}</span>
+      <span class="mb"><i style="width:${Math.round(RC.mus[k]/rmax*100)}%;background:${heatColor(RC.mus[k]/rmax)}"></i></span>
+      <span class="mv" style="width:72px">${Math.round(RC.mus[k])} 下</span></div>`);
+    r.onclick = ()=>{ closeS2(); openRehabMus(k, w.ks); };
+    body.appendChild(r);
+   });
+  }
+  const pv = Object.keys(w.pains);
+  if(pv.length){
+   body.appendChild(el(`<div class="goal" style="margin-top:14px">🩺 平均痛感</div>`));
+   pv.forEach(id=>{
+    const p = PARTS().find(x=>x.id===id); if(!p) return;
+    const v = w.pains[id];
+    body.appendChild(el(`<div class="kv"><span>${esc(p.n)}</span><b style="color:${v>=6?"var(--bad)":v>=3?"var(--warn)":"var(--good)"}">${v.toFixed(1)}/10</b></div>`));
+   });
+  }
+  if(w.feel!=null) body.appendChild(el(`<div class="kv"><span>平均訓練感受</span><b style="font-size:18px">${FEELS[Math.round(w.feel)-1]}</b></div>`));
+ });
+}
+/* 指定日子範圍嘅部位明細 */
+function openMusDetailRange(key, ks){
+ const bw = BWKG(), entries = liftsInDays(ks);
+ const {arr, tot} = musBreakdown(entries, key, bw);
+ openS2(MUS[key] + " · " + ks[ks.length-1].slice(5) + "–" + ks[0].slice(5), body=>{
+  body.appendChild(el(`<div class="big" style="margin:6px 0 2px">${tonneTxt(tot)}</div><div class="sub">${arr.length} 個動作貢獻</div>`));
+  if(!arr.length){ body.appendChild(el(`<div class="empty">呢段時間冇練到${MUS[key]}。</div>`)); return; }
+  const max = arr[0].kg;
+  arr.forEach(x=>{
+   const mv = BY_ID[x.ex]||{};
+   const r = el(`<div style="border-top:1px solid var(--line);padding:9px 2px">
+     <div style="display:flex;justify-content:space-between;gap:8px"><span style="font-size:14px">${esc(mv.n||x.ex)}</span><b>${Math.round(x.pct)}%</b></div>
+     <span class="mb" style="display:flex;height:12px;background:var(--card2);border-radius:4px;overflow:hidden;margin-top:5px">
+      <i style="display:block;height:100%;width:${Math.round(x.kg/max*100)}%;background:${heatColor(x.kg/max)}"></i></span>
+     <div class="meta"><span>${tonneTxt(x.kg)} · ${x.sets}組 · ${x.days.size}日</span></div></div>`);
+   r.onclick = ()=>{ closeS2(); openMoveDetail(x.ex); };
+   body.appendChild(r);
+  });
+ });
+}
+
 /* ============================================================
    接駁返原有頁面
    ============================================================ */
@@ -1957,6 +2390,24 @@ renderProg = function(){
  const pg = document.getElementById("pg-prog");
  const backup = pg.lastElementChild;          /* 備份卡留返最尾 */
  if(backup) pg.removeChild(backup);
+
+ /* 日曆每格可以撳入去睇當日做過咩 */
+ const g28 = pg.querySelector("#g28");
+ if(g28){
+  const ks = last(28);
+  [...g28.children].forEach((cell,i)=>{
+   const k = ks[i];
+   cell.style.cursor = "pointer";
+   if(DB.days[k]) cell.style.outline = "1px solid rgba(255,255,255,.12)";
+   cell.title = k;
+   cell.onclick = ()=>openDayDetail(k);
+  });
+  g28.parentElement.appendChild(el(`<div class="note">撳任何一格睇嗰日做過咩。</div>`));
+ }
+
+ pg.appendChild(rehabCard());
+ pg.appendChild(rehabMusCard());
+ pg.appendChild(weeklyCard());
  pg.appendChild(renderAnalysis());
  if(backup) pg.appendChild(backup);
 };
